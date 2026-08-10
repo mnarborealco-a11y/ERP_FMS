@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/*
+ * This app is deliberately light-themed only - every component (Card,
+ * Badge, AppShell, etc.) uses hardcoded light Tailwind colors with no
+ * `dark:` variants. Do NOT reintroduce a `prefers-color-scheme: dark`
+ * media query here: it previously swapped this body text color to a
+ * near-white gray on a dark-mode system, which is invisible against the
+ * white/slate-50 card backgrounds used everywhere - any plain text
+ * without its own explicit Tailwind text-color class inherits this.
+ *
+ * Brand palette (Premium Gray / Soft Black / Pastelle Blue) below drives
+ * every accent color in the app -- change it here, not per-component.
+ */
+:root {
+  --background: #f6f5f3; /* Premium Gray */
+  --foreground: #111111; /* Soft Black */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: #f6f5f3;
+  --color-ink: #111111;
+  --color-brand: #547afd;
+  --color-brand-dark: #3d5fe0;
+  --color-brand-light: #eef1ff;
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, Arial, Helvetica, sans-serif;
+}
+
+/* Mark OS-style signature gradient, used sparingly (login screen backdrop). */
+.brand-gradient {
+  background: linear-gradient(135deg, #547afd 0%, #8fa4ff 45%, #f6f5f3 100%);
+}

@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node (frontend has its own .gitignore too, this is a safety net)
+node_modules/
+
+# MCP server config - holds a live Supabase access token in plaintext
+.mcp.json
