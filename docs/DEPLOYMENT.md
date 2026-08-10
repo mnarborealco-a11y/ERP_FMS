@@ -14,13 +14,13 @@ The Supabase project (`cziglwqqellxnpzavxks`, region ap-southeast-1) already has
 
 ## Frontend (Next.js on Vercel)
 
-1. `cd frontend && npm install`
+1. `npm install` (from the repo root — the Next.js app lives there, alongside the non-Next.js `backend/` and `docs/` sibling directories).
 2. Copy `.env.local.example` to `.env.local` and set:
    - `NEXT_PUBLIC_SUPABASE_URL` — from `mcp__supabase__get_project_url`, or Project Settings > API in the Supabase dashboard.
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — the `anon`/publishable key from `mcp__supabase__get_publishable_keys`, or Project Settings > API.
 3. `npm run dev` to run locally at http://localhost:3000.
 4. Push this repo to a Git provider (GitHub/GitLab/Bitbucket).
-5. In Vercel: New Project > import the repo > set the **Root Directory** to `frontend` (the repo root also contains `backend/` and `docs/`, which Vercel should ignore) > add the `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` environment variables (same values as `.env.local`) > Deploy.
+5. In Vercel: New Project > import the repo (no Root Directory change needed — the Next.js app is at the repo root, so Vercel auto-detects it) > add the `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` environment variables (same values as `.env.local`) > Deploy.
 6. **Verify end-to-end**: open the deployed Vercel URL, log in with the bootstrapped Founder/Admin account, and confirm the dashboard loads. Since Supabase's REST/Auth endpoints are same-origin-agnostic (proper CORS support, unlike the old Apps Script Web App), there's no CORS workaround needed here — if login fails, check the browser console for the actual Supabase error message first.
 
 ## Notes
@@ -28,7 +28,7 @@ The Supabase project (`cziglwqqellxnpzavxks`, region ap-southeast-1) already has
 - There is no self-signup. All accounts (both Founder/Admin and Employee) are created from **Admin > Users** in the app, which calls the `create-user` Edge Function, by an existing Founder/Admin, after the one bootstrapped account above.
 - To roll back or fix bad data, use `mcp__supabase__execute_sql` directly against Postgres — it is the source of truth. Avoid writing directly to `score_ledger` (append-only by RLS design; only the scoring RPCs can insert) or bypassing the RPC functions for matter/task state changes, since those functions enforce invariants (ownership, state-machine preconditions, idempotent scoring) that a raw `UPDATE` would skip.
 - If admin actions ever fail with `FORBIDDEN`, check that the caller's session JWT actually carries `app_metadata.role = 'FOUNDER_ADMIN'` (log out/in refreshes it) — role changes made via `admin_update_user` force a re-login by deleting the target's sessions, so a stale tab's cached session can look like a permissions bug when it's actually just an unrefreshed token.
-- Regenerate `frontend/types/supabase.ts` after any schema change: `mcp__supabase__generate_typescript_types`, then copy the output in.
+- Regenerate `types/supabase.ts` after any schema change: `mcp__supabase__generate_typescript_types`, then copy the output in.
 
 ---
 

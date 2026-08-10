@@ -5,7 +5,7 @@ Internal, cloud-hosted tool for a law firm's own use (not a multi-tenant product
 ## Architecture
 
 - **Backend**: Supabase (Postgres project `cziglwqqellxnpzavxks`, region ap-southeast-1). All business logic lives in Postgres `plpgsql` functions exposed via `supabase.rpc()`; simple CRUD (holidays, TAT settings, list reads) goes straight through RLS-gated table/view access from the frontend. One Edge Function (`create-user`) handles admin-only user creation via the Supabase Auth Admin API.
-- **Frontend**: Next.js 16 (App Router, TypeScript, Tailwind v4) in `frontend/`, deployed to Vercel. Talks to Supabase directly via `@supabase/supabase-js` — no custom API envelope.
+- **Frontend**: Next.js 16 (App Router, TypeScript, Tailwind v4) at the repo root, deployed to Vercel (zero-config — `backend/` and `docs/` are non-Next.js siblings and are simply ignored by the Next.js build). Talks to Supabase directly via `@supabase/supabase-js` — no custom API envelope.
 - **Auth**: native Supabase Auth (GoTrue). No self-signup — every account is created by an existing Founder/Admin via the `create-user` Edge Function, after the one bootstrapped account.
 - Migrated off Google Apps Script + Google Sheets (`backend/backend.gs`, now archived — see "Decommissioned backend" below). See `docs/DEPLOYMENT.md` for full setup/deploy steps.
 
@@ -36,7 +36,7 @@ Human-readable IDs (`M-000123`, `T-000123`) are still generated, now from `matte
 
 ## RPC catalog
 
-Business logic lives in ~25 `plpgsql` functions (see the `supabase/` migration history via `mcp__supabase__list_migrations`, or `mcp__supabase__execute_sql` against `pg_proc` for current definitions). Naming: `matters_*`/`tasks_*`/`court_*`/`scoring_*`/`dashboard_*`, called from the frontend via `callApi(rpcName, {p_param: value})` in `frontend/lib/apiClient.ts`. Key ones:
+Business logic lives in ~25 `plpgsql` functions (see the `supabase/` migration history via `mcp__supabase__list_migrations`, or `mcp__supabase__execute_sql` against `pg_proc` for current definitions). Naming: `matters_*`/`tasks_*`/`court_*`/`scoring_*`/`dashboard_*`, called from the frontend via `callApi(rpcName, {p_param: value})` in `lib/apiClient.ts`. Key ones:
 
 - **State machine**: `matters_create` → `matters_complete_step1` → `matters_complete_step2_and_submit` → `matters_founder_decision` → `matters_send_for_client_approval` → `matters_record_client_decision` → `matters_send_for_filing` → `matters_complete_filing`, with `matters_submit_to_founder` handling every revision resubmission. **`matters_complete_step2_and_submit` (creates founder-iteration 1, never scored) and `matters_submit_to_founder` (every iteration ≥2, always scored) are deliberately two separate functions** — this mirrors a hard constraint from the original backend and must not be merged into one with an `is_first` branch.
 - **TAT/business-day math**: `add_working_days`, `add_working_hours`, `compute_due_at`, `working_days_late`, `is_non_working_day` — structural ports of the original Apps Script algorithms (same chunk-at-a-time loop logic, not a "clever" set-based rewrite), anchored to `Asia/Kolkata` explicitly via `at time zone`. Verified against the original `runSelfTests()` fixtures (all 7 pass) — if you touch this code, re-run that verification, don't just trust a refactor.
@@ -47,11 +47,11 @@ Business logic lives in ~25 `plpgsql` functions (see the `supabase/` migration h
 
 `pg_cron` (enabled on this project) runs `run_overdue_scan()` daily via the job `overdue-scan-daily`, schedule `30 19 * * *` — **that's UTC**; `Asia/Kolkata` is UTC+5:30, so 19:30 UTC = 1:00 AM IST, matching the original backend's daily trigger time. If you ever need to change the scan time, remember the half-hour offset — don't just convert as if IST were a round UTC+5 or UTC+6.
 
-## Frontend conventions (`frontend/`)
+## Frontend conventions (repo root: `app/`, `lib/`, `components/`, `types/`)
 
 - `lib/apiClient.ts`'s `callApi<T>(rpcName, params)` is a thin wrapper around `supabase.rpc()`, normalizing `PostgrestError` back into the same `ApiError{code,message,details}` shape the UI already branches on (parses the `'CODE: message'` prefix every RPC's `raise exception` uses). Direct table/view reads (lists, holidays, TAT settings) go straight through the `supabase` client exported from `lib/supabaseClient.ts`, not through `callApi`.
 - `lib/auth.tsx` is backed by `supabase.auth` — session restore uses `supabase.auth.getSession()`/`onAuthStateChange`, and role is read from `session.user.app_metadata.role` (already parsed by supabase-js, no manual JWT decoding needed, no extra round trip — same property the old hand-rolled `decodeToken()` was optimizing for).
-- **All row field names are now snake_case** (`matter.matter_id`, `matter.current_step`, `task.assigned_to`, etc.), matching Postgres/PostgREST directly — this is a deliberate departure from the old Apps Script API's camelCase. `frontend/types/api.ts` derives its domain types from the generated `frontend/types/supabase.ts` (regenerate via `mcp__supabase__generate_typescript_types` after any schema change, then re-copy into `types/supabase.ts`).
+- **All row field names are now snake_case** (`matter.matter_id`, `matter.current_step`, `task.assigned_to`, etc.), matching Postgres/PostgREST directly — this is a deliberate departure from the old Apps Script API's camelCase. `types/api.ts` derives its domain types from the generated `types/supabase.ts` (regenerate via `mcp__supabase__generate_typescript_types` after any schema change, then re-copy into `types/supabase.ts`).
 - User creation (`admin.createUser` equivalent) goes through the `create-user` Edge Function (`supabase.functions.invoke('create-user', {...})`), not a direct table insert — it needs the service-role key to call the Auth Admin API, which must never reach the browser.
 - `app/globals.css` has **no** `prefers-color-scheme: dark` override — the app is light-themed only (no `dark:` Tailwind variants anywhere).
 - Don't declare components inside another component's render body — React remounts them every parent render, silently losing local state/focus. Keep all components at module scope.
@@ -96,5 +96,8 @@ Exactly two: `FOUNDER_ADMIN` and `EMPLOYEE`. No self-signup — every account is
 ## Current state
 
 - Migration to Supabase complete on the backend side: schema, RLS, all RPCs, auth wiring, and the daily cron job are live and smoke-tested end-to-end (full matter lifecycle, RLS boundaries, idempotent scoring all verified against the real project).
-- Frontend has been ported to call Supabase directly (`frontend/lib/apiClient.ts`, `auth.tsx`, `useEmployees.ts`, `types/api.ts`, `supabaseClient.ts`, and every page under `frontend/app/`) — verify `npm run build` passes before treating this as done if you're picking this up mid-stream.
-- Not yet committed to git — only commit/push when explicitly asked.
+- Frontend has been ported to call Supabase directly (`lib/apiClient.ts`, `auth.tsx`, `useEmployees.ts`, `types/api.ts`, `supabaseClient.ts`, and every page under `app/`) — verify `npm run build` passes before treating this as done if you're picking this up mid-stream.
+- Restructured so the Next.js app lives at the repo root (not `frontend/`) — this makes Vercel deploys zero-config (no "Root Directory" dashboard setting needed), since Vercel's Next.js builder reads `package.json` from wherever it thinks the project root is, before any custom build command runs. `backend/` and `docs/` remain as non-Next.js sibling directories.
+- Git repo pushed to `github.com/mnarborealco-a11y/ERP_FMS`.
+
+@AGENTS.md
