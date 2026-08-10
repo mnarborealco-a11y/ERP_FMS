@@ -7,6 +7,9 @@ Thumbs.db
 # MCP server config - holds a live Supabase access token in plaintext
 .mcp.json
 
+# Decommissioned Apps Script backend - contains plaintext bootstrap/demo passwords
+/backend/
+
 # dependencies
 /node_modules
 /.pnp
