@@ -30,7 +30,7 @@ export default function AdminCourtPunchesPage() {
         title="Court Punches"
         actions={
           <Select value={employeeId} onChange={(e) => setEmployeeId(e.target.value)} className="w-52">
-            <option value="">All employees</option>
+            <option value="">All users</option>
             {employees?.map((e) => (
               <option key={e.userId} value={e.userId}>
                 {e.name}
@@ -49,7 +49,7 @@ export default function AdminCourtPunchesPage() {
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="px-4 py-2">Employee</th>
+                <th className="px-4 py-2">User</th>
                 <th className="px-4 py-2">Court</th>
                 <th className="px-4 py-2">Punch In</th>
                 <th className="px-4 py-2">Punch Out</th>

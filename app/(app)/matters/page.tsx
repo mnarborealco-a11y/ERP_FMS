@@ -88,9 +88,9 @@ export default function MattersListPage() {
             <Field label="Client name">
               <Input value={clientName} onChange={(e) => setClientName(e.target.value)} />
             </Field>
-            <Field label="Assign to employee">
+            <Field label="Assign to user">
               <Select required value={employeeId} onChange={(e) => setEmployeeId(e.target.value)} disabled={employeesLoading}>
-                <option value="">Select employee…</option>
+                <option value="">Select user…</option>
                 {employees?.map((e) => (
                   <option key={e.userId} value={e.userId}>
                     {e.name}

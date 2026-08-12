@@ -57,7 +57,7 @@ export default function UsersPage() {
 
   return (
     <div>
-      <PageHeader title="Users" subtitle="Create Founder/Admin or Employee accounts. There is no self-signup." />
+      <PageHeader title="Users" subtitle="Create Founder/Admin or User accounts. There is no self-signup." />
 
       <Card className="mb-6 max-w-lg">
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
@@ -69,7 +69,7 @@ export default function UsersPage() {
           </Field>
           <Field label="Role">
             <Select value={role} onChange={(e) => setRole(e.target.value as Role)}>
-              <option value="EMPLOYEE">Employee</option>
+              <option value="EMPLOYEE">User</option>
               <option value="FOUNDER_ADMIN">Founder / Admin</option>
             </Select>
           </Field>
@@ -102,7 +102,7 @@ export default function UsersPage() {
                 <tr key={u.userId} className="border-b border-slate-100 last:border-0">
                   <td className="px-4 py-2 font-medium">{u.name}</td>
                   <td className="px-4 py-2">{u.email}</td>
-                  <td className="px-4 py-2">{u.role === 'FOUNDER_ADMIN' ? 'Founder / Admin' : 'Employee'}</td>
+                  <td className="px-4 py-2">{u.role === 'FOUNDER_ADMIN' ? 'Founder / Admin' : 'User'}</td>
                   <td className="px-4 py-2">
                     <Badge tone={u.status === 'ACTIVE' ? 'green' : 'red'}>{u.status}</Badge>
                   </td>

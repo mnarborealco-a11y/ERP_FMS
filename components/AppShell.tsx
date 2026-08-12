@@ -164,7 +164,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-3">
             <Link href="/profile" className="text-sm text-slate-600 hover:text-ink">
               <span className="hidden sm:inline">{user?.name} </span>
-              <span className="text-xs text-slate-400">({user?.role === 'FOUNDER_ADMIN' ? 'Admin' : 'Employee'})</span>
+              <span className="text-xs text-slate-400">({user?.role === 'FOUNDER_ADMIN' ? 'Admin' : 'User'})</span>
             </Link>
             <button onClick={() => logout()} className="text-sm font-medium text-slate-500 hover:text-ink">
               Log out

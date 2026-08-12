@@ -46,7 +46,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex justify-between">
               <dt className="text-slate-500">Role</dt>
-              <dd className="font-medium text-slate-900">{user?.role === 'FOUNDER_ADMIN' ? 'Founder / Admin' : 'Employee'}</dd>
+              <dd className="font-medium text-slate-900">{user?.role === 'FOUNDER_ADMIN' ? 'Founder / Admin' : 'User'}</dd>
             </div>
           </dl>
         </Card>

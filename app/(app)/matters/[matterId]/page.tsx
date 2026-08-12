@@ -280,7 +280,7 @@ function ActionPanel({
   const step = matter.current_step;
 
   if (step === 'DRAFTING_STEP1') {
-    if (!isOwner) return <PendingNote text="Employee is compiling the list of dates/notes (Step 1)." />;
+    if (!isOwner) return <PendingNote text="User is compiling the list of dates/notes (Step 1)." />;
     return (
       <Button onClick={onCompleteStep1} disabled={disabled}>
         Mark Step 1 Complete
@@ -289,7 +289,7 @@ function ActionPanel({
   }
 
   if (step === 'DRAFTING_STEP2') {
-    if (!isOwner) return <PendingNote text="Employee is preparing the brief (Step 2)." />;
+    if (!isOwner) return <PendingNote text="User is preparing the brief (Step 2)." />;
     return (
       <div className="flex flex-col gap-3">
         <Field label="Notes for founder (optional)">
@@ -317,7 +317,7 @@ function ActionPanel({
 
   if (step === 'REVISING_AFTER_FOUNDER_NOTES' || step === 'REVISING_AFTER_CLIENT_CHANGES') {
     if (!isOwner)
-      return <PendingNote text={step === 'REVISING_AFTER_FOUNDER_NOTES' ? 'Employee is revising per founder notes.' : 'Employee is incorporating client-requested changes.'} />;
+      return <PendingNote text={step === 'REVISING_AFTER_FOUNDER_NOTES' ? 'User is revising per founder notes.' : 'User is incorporating client-requested changes.'} />;
     return (
       <div className="flex flex-col gap-3">
         <Field label="Notes for founder (optional)">

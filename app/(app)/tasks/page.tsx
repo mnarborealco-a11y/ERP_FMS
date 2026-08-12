@@ -105,7 +105,7 @@ export default function TasksPage() {
             </div>
             <Field label="Assign to">
               <Select required value={employeeId} onChange={(e) => setEmployeeId(e.target.value)}>
-                <option value="">Select employee…</option>
+                <option value="">Select user…</option>
                 {employees?.map((emp) => (
                   <option key={emp.userId} value={emp.userId}>
                     {emp.name}
