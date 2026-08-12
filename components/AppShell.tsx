@@ -30,7 +30,6 @@ const adminTopNav: NavItem[] = [
 // Firm-administration screens, grouped under the collapsible "Admin" panel
 // rather than living flat alongside the day-to-day nav items above.
 const adminPanelNav: NavItem[] = [
-  { href: '/admin/tat', label: 'TAT' },
   { href: '/admin/holidays', label: 'Holidays' },
   { href: '/admin/users', label: 'Users' }
 ];

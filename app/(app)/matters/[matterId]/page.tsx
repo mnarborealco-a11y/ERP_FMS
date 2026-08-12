@@ -117,7 +117,14 @@ export default function MatterDetailPage({ params }: { params: Promise<{ matterI
 
             {activeStep && (
               <div className={`mb-4 rounded-md border px-3 py-2 text-sm ${isOverdue(activeStep.due_at) ? 'border-red-200 bg-red-50 text-red-700' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
-                <span className="font-medium">{activeStep.step_type.replaceAll('_', ' ')}</span> — TAT {activeStep.tat_value} {activeStep.tat_unit.toLowerCase()}, due {formatDateTime(activeStep.due_at)}
+                <span className="font-medium">{activeStep.step_type.replaceAll('_', ' ')}</span> —{' '}
+                {activeStep.due_at ? (
+                  <>
+                    TAT {activeStep.tat_value} {activeStep.tat_unit?.toLowerCase()}, due {formatDateTime(activeStep.due_at)}
+                  </>
+                ) : (
+                  'No timeline'
+                )}
                 {isOverdue(activeStep.due_at) && <span className="ml-2 font-semibold">OVERDUE</span>}
               </div>
             )}
@@ -186,7 +193,13 @@ export default function MatterDetailPage({ params }: { params: Promise<{ matterI
                   <li key={s.step_instance_id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm">
                     <span className="font-medium">{s.step_type.replaceAll('_', ' ')}</span>
                     <span className="text-slate-500">
-                      TAT {s.tat_value} {s.tat_unit.toLowerCase()} · due {formatDateTime(s.due_at)}
+                      {s.due_at ? (
+                        <>
+                          TAT {s.tat_value} {s.tat_unit?.toLowerCase()} · due {formatDateTime(s.due_at)}
+                        </>
+                      ) : (
+                        'No timeline'
+                      )}
                     </span>
                     <Badge tone={s.status.startsWith('BREACHED') ? 'red' : s.status === 'DONE' ? 'green' : 'slate'}>{s.status.replaceAll('_', ' ')}</Badge>
                   </li>

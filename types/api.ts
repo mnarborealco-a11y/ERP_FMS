@@ -23,7 +23,8 @@ export interface PublicUser {
 
 export type HolidayEntry = Tables<'holidays'>;
 export type TatUnit = Enums<'tat_unit_t'>;
-export type TatSetting = Tables<'tat_settings'>;
+export type TatStepKey = 'STEP1' | 'STEP2' | 'CLIENT_APPROVAL' | 'FILING';
+export type MatterTatSetting = Tables<'matter_tat_settings'>;
 
 export type MatterType = Enums<'matter_type_t'>;
 export type MatterStatus = Enums<'matter_status_t'>;

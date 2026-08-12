@@ -262,42 +262,42 @@ export type Database = {
           client_round_number: number
           completed_at: string | null
           created_at: string
-          due_at: string
+          due_at: string | null
           matter_id: string
           started_at: string
           status: Database["public"]["Enums"]["step_status_t"]
           step_instance_id: string
           step_type: Database["public"]["Enums"]["step_type_t"]
-          tat_unit: Database["public"]["Enums"]["tat_unit_t"]
-          tat_value: number
+          tat_unit: Database["public"]["Enums"]["tat_unit_t"] | null
+          tat_value: number | null
         }
         Insert: {
           assigned_employee_id?: string | null
           client_round_number?: number
           completed_at?: string | null
           created_at?: string
-          due_at: string
+          due_at?: string | null
           matter_id: string
           started_at: string
           status?: Database["public"]["Enums"]["step_status_t"]
           step_instance_id?: string
           step_type: Database["public"]["Enums"]["step_type_t"]
-          tat_unit: Database["public"]["Enums"]["tat_unit_t"]
-          tat_value: number
+          tat_unit?: Database["public"]["Enums"]["tat_unit_t"] | null
+          tat_value?: number | null
         }
         Update: {
           assigned_employee_id?: string | null
           client_round_number?: number
           completed_at?: string | null
           created_at?: string
-          due_at?: string
+          due_at?: string | null
           matter_id?: string
           started_at?: string
           status?: Database["public"]["Enums"]["step_status_t"]
           step_instance_id?: string
           step_type?: Database["public"]["Enums"]["step_type_t"]
-          tat_unit?: Database["public"]["Enums"]["tat_unit_t"]
-          tat_value?: number
+          tat_unit?: Database["public"]["Enums"]["tat_unit_t"] | null
+          tat_value?: number | null
         }
         Relationships: [
           {
@@ -316,6 +316,38 @@ export type Database = {
           },
           {
             foreignKeyName: "matter_steps_matter_id_fkey"
+            columns: ["matter_id"]
+            isOneToOne: false
+            referencedRelation: "matters"
+            referencedColumns: ["matter_id"]
+          },
+        ]
+      }
+      matter_tat_settings: {
+        Row: {
+          created_at: string
+          matter_id: string
+          step_key: string
+          unit: Database["public"]["Enums"]["tat_unit_t"]
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          matter_id: string
+          step_key: string
+          unit: Database["public"]["Enums"]["tat_unit_t"]
+          value: number
+        }
+        Update: {
+          created_at?: string
+          matter_id?: string
+          step_key?: string
+          unit?: Database["public"]["Enums"]["tat_unit_t"]
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matter_tat_settings_matter_id_fkey"
             columns: ["matter_id"]
             isOneToOne: false
             referencedRelation: "matters"
@@ -557,64 +589,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "task_push_requests_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
-            referencedRelation: "active_employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_push_requests_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "task_push_requests_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "independent_tasks"
             referencedColumns: ["task_id"]
-          },
-        ]
-      }
-      tat_settings: {
-        Row: {
-          step_key: string
-          unit: Database["public"]["Enums"]["tat_unit_t"]
-          updated_at: string
-          updated_by: string | null
-          value: number
-        }
-        Insert: {
-          step_key: string
-          unit: Database["public"]["Enums"]["tat_unit_t"]
-          updated_at?: string
-          updated_by?: string | null
-          value: number
-        }
-        Update: {
-          step_key?: string
-          unit?: Database["public"]["Enums"]["tat_unit_t"]
-          updated_at?: string
-          updated_by?: string | null
-          value?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tat_settings_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "active_employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tat_settings_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
           },
         ]
       }
@@ -708,20 +687,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "transfer_requests_to_employee_id_fkey"
-            columns: ["to_employee_id"]
-            isOneToOne: false
-            referencedRelation: "active_employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transfer_requests_to_employee_id_fkey"
-            columns: ["to_employee_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
     }
@@ -751,7 +716,7 @@ export type Database = {
         Args: { hours: number; start_at: string }
         Returns: string
       }
-      admin_list_users: { Args: Record<PropertyKey, never>; Returns: Json }
+      admin_list_users: { Args: never; Returns: Json }
       admin_update_user: {
         Args: {
           p_name?: string
@@ -772,14 +737,20 @@ export type Database = {
           client_round_number: number
           completed_at: string | null
           created_at: string
-          due_at: string
+          due_at: string | null
           matter_id: string
           started_at: string
           status: Database["public"]["Enums"]["step_status_t"]
           step_instance_id: string
           step_type: Database["public"]["Enums"]["step_type_t"]
-          tat_unit: Database["public"]["Enums"]["tat_unit_t"]
-          tat_value: number
+          tat_unit: Database["public"]["Enums"]["tat_unit_t"] | null
+          tat_value: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matter_steps"
+          isOneToOne: true
+          isSetofReturn: false
         }
       }
       compute_due_at: {
@@ -795,11 +766,11 @@ export type Database = {
         Returns: Json
       }
       court_punch_out: { Args: { p_punch_id: string }; Returns: Json }
-      current_role_claim: { Args: Record<PropertyKey, never>; Returns: string }
-      dashboard_admin: { Args: Record<PropertyKey, never>; Returns: Json }
-      dashboard_employee: { Args: Record<PropertyKey, never>; Returns: Json }
-      is_active_caller: { Args: Record<PropertyKey, never>; Returns: boolean }
-      is_admin_caller: { Args: Record<PropertyKey, never>; Returns: boolean }
+      current_role_claim: { Args: never; Returns: string }
+      dashboard_admin: { Args: never; Returns: Json }
+      dashboard_employee: { Args: never; Returns: Json }
+      is_active_caller: { Args: never; Returns: boolean }
+      is_admin_caller: { Args: never; Returns: boolean }
       is_non_working_day: { Args: { ts: string }; Returns: boolean }
       local_midnight: { Args: { ts: string }; Returns: string }
       matter_detail: { Args: { p_matter_id: string }; Returns: Json }
@@ -813,6 +784,7 @@ export type Database = {
         Args: {
           p_client_name: string
           p_employee_id: string
+          p_tat?: Json
           p_title: string
           p_type: Database["public"]["Enums"]["matter_type_t"]
         }
@@ -874,14 +846,20 @@ export type Database = {
           client_round_number: number
           completed_at: string | null
           created_at: string
-          due_at: string
+          due_at: string | null
           matter_id: string
           started_at: string
           status: Database["public"]["Enums"]["step_status_t"]
           step_instance_id: string
           step_type: Database["public"]["Enums"]["step_type_t"]
-          tat_unit: Database["public"]["Enums"]["tat_unit_t"]
-          tat_value: number
+          tat_unit: Database["public"]["Enums"]["tat_unit_t"] | null
+          tat_value: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "matter_steps"
+          isOneToOne: true
+          isSetofReturn: false
         }
       }
       require_any_matter: {
@@ -903,10 +881,22 @@ export type Database = {
           type: Database["public"]["Enums"]["matter_type_t"]
           updated_at: string
         }
+        SetofOptions: {
+          from: "*"
+          to: "matters"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       require_auth: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: Database["public"]["CompositeTypes"]["auth_ctx"]
+        SetofOptions: {
+          from: "*"
+          to: "auth_ctx"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       require_owned_matter: {
         Args: { p_matter_id: string; p_user_id: string }
@@ -927,15 +917,22 @@ export type Database = {
           type: Database["public"]["Enums"]["matter_type_t"]
           updated_at: string
         }
+        SetofOptions: {
+          from: "*"
+          to: "matters"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       resolve_step_tat: {
         Args: {
+          p_matter_id: string
           p_start_at: string
           p_step_type: Database["public"]["Enums"]["step_type_t"]
         }
         Returns: Record<string, unknown>
       }
-      run_overdue_scan: { Args: Record<PropertyKey, never>; Returns: number }
+      run_overdue_scan: { Args: never; Returns: number }
       score_overdue_for_ref: {
         Args: {
           p_description: string
@@ -948,8 +945,8 @@ export type Database = {
         }
         Returns: number
       }
-      scoring_get_summary: { Args: Record<PropertyKey, never>; Returns: Json }
-      scoring_recompute_overdue_now: { Args: Record<PropertyKey, never>; Returns: Json }
+      scoring_get_summary: { Args: never; Returns: Json }
+      scoring_recompute_overdue_now: { Args: never; Returns: Json }
       start_of_next_day: { Args: { ts: string }; Returns: string }
       task_detail: { Args: { p_task_id: string }; Returns: Json }
       tasks_admin_push_due_date: {
@@ -1161,3 +1158,54 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      cycle_decision_t: ["PENDING", "APPROVED", "CHANGES_REQUESTED"],
+      cycle_type_t: ["FOUNDER_REVIEW", "CLIENT_REVIEW"],
+      initiated_by_t: ["ADMIN", "EMPLOYEE"],
+      matter_status_t: ["IN_PROGRESS", "COMPLETED", "CANCELLED"],
+      matter_step_t: [
+        "DRAFTING_STEP1",
+        "DRAFTING_STEP2",
+        "AWAITING_FOUNDER_REVIEW",
+        "REVISING_AFTER_FOUNDER_NOTES",
+        "READY_FOR_CLIENT_SEND",
+        "AWAITING_CLIENT_REVIEW",
+        "REVISING_AFTER_CLIENT_CHANGES",
+        "READY_FOR_FILING",
+        "AWAITING_FILING_COMPLETION",
+        "COMPLETED",
+      ],
+      matter_type_t: ["LITIGATION", "NON_LITIGATION"],
+      push_status_t: ["PENDING", "APPROVED", "REJECTED", "AUTO_APPROVED"],
+      request_status_t: ["PENDING", "APPROVED", "REJECTED"],
+      role_t: ["FOUNDER_ADMIN", "EMPLOYEE"],
+      score_event_t: [
+        "FOUNDER_RESUBMISSION",
+        "OVERDUE_STEP",
+        "OVERDUE_TASK",
+        "ADMIN_ADJUSTMENT",
+      ],
+      score_ref_t: ["MATTER_APPROVAL", "MATTER_STEP", "TASK"],
+      step_status_t: [
+        "IN_PROGRESS",
+        "PENDING",
+        "BREACHED_OPEN",
+        "DONE",
+        "BREACHED_DONE",
+      ],
+      step_type_t: [
+        "STEP1_DATES_NOTES",
+        "STEP2_BRIEF",
+        "CLIENT_APPROVAL_SEND",
+        "FILING",
+      ],
+      task_priority_t: ["LOW", "MEDIUM", "HIGH", "URGENT"],
+      task_status_t: ["OPEN", "IN_PROGRESS", "DONE", "CANCELLED"],
+      tat_unit_t: ["DAYS", "HOURS"],
+      user_status_t: ["ACTIVE", "DISABLED"],
+    },
+  },
+} as const

@@ -4,7 +4,7 @@ Internal, cloud-hosted tool for a law firm's own use (not a multi-tenant product
 
 ## Architecture
 
-- **Backend**: Supabase (Postgres project `cziglwqqellxnpzavxks`, region ap-southeast-1). All business logic lives in Postgres `plpgsql` functions exposed via `supabase.rpc()`; simple CRUD (holidays, TAT settings, list reads) goes straight through RLS-gated table/view access from the frontend. One Edge Function (`create-user`) handles admin-only user creation via the Supabase Auth Admin API.
+- **Backend**: Supabase (Postgres project `cziglwqqellxnpzavxks`, region ap-southeast-1). All business logic lives in Postgres `plpgsql` functions exposed via `supabase.rpc()`; simple CRUD (holidays, list reads) goes straight through RLS-gated table/view access from the frontend. One Edge Function (`create-user`) handles admin-only user creation via the Supabase Auth Admin API.
 - **Frontend**: Next.js 16 (App Router, TypeScript, Tailwind v4) at the repo root, deployed to Vercel (zero-config — `backend/` and `docs/` are non-Next.js siblings and are simply ignored by the Next.js build). Talks to Supabase directly via `@supabase/supabase-js` — no custom API envelope.
 - **Auth**: native Supabase Auth (GoTrue). No self-signup — every account is created by an existing Founder/Admin via the `create-user` Edge Function, after the one bootstrapped account.
 - Migrated off Google Apps Script + Google Sheets (`backend/backend.gs`, now archived — see "Decommissioned backend" below). See `docs/DEPLOYMENT.md` for full setup/deploy steps.
@@ -16,7 +16,7 @@ Internal, cloud-hosted tool for a law firm's own use (not a multi-tenant product
 | Old Sheet | Now | Why |
 |---|---|---|
 | `Sessions` | Gone | Superseded by GoTrue's own `auth.sessions`. |
-| `Config` (TAT rows) | `tat_settings` table (4 rows: `STEP1`/`STEP2`/`CLIENT_APPROVAL`/`FILING`) | Narrow, typed, admin-editable via direct RLS-gated writes. |
+| `Config` (TAT rows) | Gone — replaced by per-matter `matter_tat_settings` | There is no global TAT template anymore. TAT is opt-in per matter, per step (`STEP1`/`STEP2`/`CLIENT_APPROVAL`/`FILING`), set once at matter-creation time via `matters_create`'s `p_tat` param. A step with no matching row has no due date at all — not an error, just no timeline for that step. |
 | `Config.SESSION_TTL_HOURS` | Gone | Now a Supabase Auth project setting, not app data. |
 | `Config.SEQ_MATTER`/`SEQ_TASK` | Real Postgres `SEQUENCE`s (`matter_seq`, `task_seq`), never client-readable | Old `admin.getConfig` used to leak these as if they were settings — a sequence can't leak by construction. |
 | `Users` | `auth.users` (GoTrue: email/password/identity) + `profiles` (role/status/name), 1:1 via `profiles.id = auth.users.id` | Native auth. |
@@ -31,7 +31,7 @@ Human-readable IDs (`M-000123`, `T-000123`) are still generated, now from `matte
 - **Role** comes straight from the JWT's `app_metadata.role` claim — GoTrue includes `app_metadata` in every access token by default, so **no Custom Access Token Hook is needed** (confirmed working; don't add one, it'd be redundant). Role is set at user-creation time by the `create-user` Edge Function and updated via the `admin_update_user` RPC, which also deletes the target's `auth.sessions` rows so a role/status change takes effect on the user's very next request rather than waiting for token refresh.
 - **Active/disabled status** is checked live via `is_active_caller()` (a `SECURITY DEFINER stable` helper), not from a JWT claim, since it must be immediate.
 - Every operational table (`matters`, `matter_steps`, `approval_cycles`, `transfer_requests`, `court_punches`, `independent_tasks`, `task_push_requests`, `score_ledger`, `profiles`) has RLS enabled with **SELECT-only policies** — all `INSERT`/`UPDATE`/`DELETE` grants are revoked from `authenticated`. Every mutation goes through a `SECURITY DEFINER` RPC that reimplements the ownership/state checks internally (these functions bypass RLS as the table owner — that's the intended, reviewed design, not a gap; `get_advisors` will always flag them as "SECURITY DEFINER callable by authenticated," which is expected here). `score_ledger` is append-only in practice for exactly this reason: employees can `SELECT` their own rows, but only `score_overdue_for_ref`/`matters_submit_to_founder` (never a raw client insert) can write.
-- `holidays` and `tat_settings` are simple enough to stay direct RLS-gated table access (read: any active user; write: admin only) — no RPC wrapper.
+- `holidays` is simple enough to stay direct RLS-gated table access (read: any active user; write: admin only) — no RPC wrapper. `matter_tat_settings` is SELECT-only via RLS (any active user) like the other operational tables — only `matters_create` can write to it, and only at matter-creation time; there is no edit-TAT-later RPC.
 - `active_employees` is a narrow view (`id, name` for active `EMPLOYEE`-role profiles only) — intentionally a `SECURITY DEFINER`-style view (Postgres's default) so it can show the directory to any authenticated user without needing `profiles`' own RLS (which restricts non-admins to their own row) to also expose it. Reviewed and accepted by `get_advisors` standards for this reason — don't "fix" it into a `security_invoker` view, that would break the employee dropdown for non-admins.
 
 ## RPC catalog
@@ -49,7 +49,7 @@ Business logic lives in ~25 `plpgsql` functions (see the `supabase/` migration h
 
 ## Frontend conventions (repo root: `app/`, `lib/`, `components/`, `types/`)
 
-- `lib/apiClient.ts`'s `callApi<T>(rpcName, params)` is a thin wrapper around `supabase.rpc()`, normalizing `PostgrestError` back into the same `ApiError{code,message,details}` shape the UI already branches on (parses the `'CODE: message'` prefix every RPC's `raise exception` uses). Direct table/view reads (lists, holidays, TAT settings) go straight through the `supabase` client exported from `lib/supabaseClient.ts`, not through `callApi`.
+- `lib/apiClient.ts`'s `callApi<T>(rpcName, params)` is a thin wrapper around `supabase.rpc()`, normalizing `PostgrestError` back into the same `ApiError{code,message,details}` shape the UI already branches on (parses the `'CODE: message'` prefix every RPC's `raise exception` uses). Direct table/view reads (lists, holidays) go straight through the `supabase` client exported from `lib/supabaseClient.ts`, not through `callApi`.
 - `lib/auth.tsx` is backed by `supabase.auth` — session restore uses `supabase.auth.getSession()`/`onAuthStateChange`, and role is read from `session.user.app_metadata.role` (already parsed by supabase-js, no manual JWT decoding needed, no extra round trip — same property the old hand-rolled `decodeToken()` was optimizing for).
 - **All row field names are now snake_case** (`matter.matter_id`, `matter.current_step`, `task.assigned_to`, etc.), matching Postgres/PostgREST directly — this is a deliberate departure from the old Apps Script API's camelCase. `types/api.ts` derives its domain types from the generated `types/supabase.ts` (regenerate via `mcp__supabase__generate_typescript_types` after any schema change, then re-copy into `types/supabase.ts`).
 - User creation (`admin.createUser` equivalent) goes through the `create-user` Edge Function (`supabase.functions.invoke('create-user', {...})`), not a direct table insert — it needs the service-role key to call the Auth Admin API, which must never reach the browser.
@@ -70,7 +70,7 @@ DRAFTING_STEP1 -> DRAFTING_STEP2 -> AWAITING_FOUNDER_REVIEW
 ```
 
 - `founder_iteration_counter` is a **matter-lifetime running total**, not per-client-round (see RPC catalog above for the two-function split that enforces this).
-- TAT (turnaround time) is business-day/hour aware — skips Sat/Sun and dates in the `holidays` table. Admin sets TAT per step type under Admin > TAT & Holidays, backed by `tat_settings`.
+- TAT (turnaround time) is business-day/hour aware — skips Sat/Sun and dates in the `holidays` table. There is no global TAT template: TAT is opt-in, set per matter per step type (`STEP1`/`STEP2`/`CLIENT_APPROVAL`/`FILING`) by the admin at matter-creation time via the "New Matter" form's `p_tat` payload, stored in `matter_tat_settings`, and cannot be edited after the matter is created. A step with no TAT configured for it opens with `due_at = null` — it still moves through the state machine normally, it just never has a deadline, is never "overdue," and never accrues overdue-scoring points for that step.
 - Notes are **required** (RPC raises `VALIDATION_ERROR`) when requesting changes, both for founder and client decisions — see `matters_founder_decision`/`matters_record_client_decision`.
 - Employee-initiated matter transfers and task due-date pushes both require Founder/Admin approval. Approving a transfer also reassigns any currently-open `matter_steps` row to the new owner (`matters_decide_transfer`), so future overdue scoring attributes correctly.
 
@@ -99,5 +99,6 @@ Exactly two: `FOUNDER_ADMIN` and `EMPLOYEE`. No self-signup — every account is
 - Frontend has been ported to call Supabase directly (`lib/apiClient.ts`, `auth.tsx`, `useEmployees.ts`, `types/api.ts`, `supabaseClient.ts`, and every page under `app/`) — verify `npm run build` passes before treating this as done if you're picking this up mid-stream.
 - Restructured so the Next.js app lives at the repo root (not `frontend/`) — this makes Vercel deploys zero-config (no "Root Directory" dashboard setting needed), since Vercel's Next.js builder reads `package.json` from wherever it thinks the project root is, before any custom build command runs. `backend/` and `docs/` remain as non-Next.js sibling directories.
 - Git repo pushed to `github.com/mnarborealco-a11y/ERP_FMS`.
+- TAT moved from a global template (`tat_settings`, dropped) to opt-in per-matter, per-step config (`matter_tat_settings`, set once via `matters_create`'s `p_tat` param — see "FMS workflow" above). Existing matters created before this change had their due dates stripped for consistency (no per-matter TAT row for them either), and Admin > TAT & Holidays is now just Admin > Holidays.
 
 @AGENTS.md

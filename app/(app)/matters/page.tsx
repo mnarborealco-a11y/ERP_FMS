@@ -9,12 +9,28 @@ import { callApi } from '@/lib/apiClient';
 import { supabase } from '@/lib/supabaseClient';
 import { useEmployees } from '@/lib/useEmployees';
 import { Badge, Button, Card, EmptyState, ErrorBanner, Field, Input, LoadingState, Modal, PageHeader, Select, formatDate } from '@/components/ui';
-import type { Matter, MatterMutationResponse, MatterStatus, MatterType } from '@/types/api';
+import type { Matter, MatterMutationResponse, MatterStatus, MatterType, TatStepKey, TatUnit } from '@/types/api';
 
 const statusTone: Record<MatterStatus, 'slate' | 'green' | 'amber' | 'red' | 'blue'> = {
   IN_PROGRESS: 'blue',
   COMPLETED: 'green',
   CANCELLED: 'red'
+};
+
+const TAT_STEPS: { key: TatStepKey; label: string }[] = [
+  { key: 'STEP1', label: 'Step 1 — List of Dates / Notes' },
+  { key: 'STEP2', label: 'Step 2 — Preparing Brief' },
+  { key: 'CLIENT_APPROVAL', label: 'Send for Client Approval' },
+  { key: 'FILING', label: 'Filing / Execution' }
+];
+
+type TatDraft = Record<TatStepKey, { enabled: boolean; value: string; unit: TatUnit }>;
+
+const emptyTatDraft: TatDraft = {
+  STEP1: { enabled: false, value: '', unit: 'DAYS' },
+  STEP2: { enabled: false, value: '', unit: 'DAYS' },
+  CLIENT_APPROVAL: { enabled: false, value: '', unit: 'DAYS' },
+  FILING: { enabled: false, value: '', unit: 'DAYS' }
 };
 
 export default function MattersListPage() {
@@ -38,7 +54,12 @@ export default function MattersListPage() {
   const [title, setTitle] = useState('');
   const [clientName, setClientName] = useState('');
   const [employeeId, setEmployeeId] = useState('');
+  const [tatDraft, setTatDraft] = useState<TatDraft>(emptyTatDraft);
   const [error, setError] = useState<string | null>(null);
+
+  function updateTat(key: TatStepKey, patch: Partial<TatDraft[TatStepKey]>) {
+    setTatDraft((d) => ({ ...d, [key]: { ...d[key], ...patch } }));
+  }
 
   const createMatter = useMutation({
     mutationFn: () =>
@@ -46,13 +67,19 @@ export default function MattersListPage() {
         p_type: type,
         p_title: title,
         p_client_name: clientName,
-        p_employee_id: employeeId
+        p_employee_id: employeeId,
+        p_tat: TAT_STEPS.filter(({ key }) => tatDraft[key].enabled && tatDraft[key].value).map(({ key }) => ({
+          step_key: key,
+          value: Number(tatDraft[key].value),
+          unit: tatDraft[key].unit
+        }))
       }),
     onSuccess: (data) => {
       setShowCreate(false);
       setTitle('');
       setClientName('');
       setEmployeeId('');
+      setTatDraft(emptyTatDraft);
       queryClient.invalidateQueries({ queryKey: ['matters'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       router.push(`/matters/${data.matter.matter_id}`);
@@ -98,6 +125,33 @@ export default function MattersListPage() {
                 ))}
               </Select>
             </Field>
+            <div className="flex flex-col gap-2 rounded-md border border-slate-200 p-3">
+              <span className="text-xs font-medium text-slate-600">TAT (optional — a step left unchecked has no due date / timeline)</span>
+              {TAT_STEPS.map(({ key, label }) => (
+                <div key={key} className="flex flex-wrap items-center gap-2">
+                  <label className="flex flex-1 items-center gap-2 text-sm text-slate-700">
+                    <input type="checkbox" checked={tatDraft[key].enabled} onChange={(e) => updateTat(key, { enabled: e.target.checked })} />
+                    {label}
+                  </label>
+                  {tatDraft[key].enabled && (
+                    <>
+                      <Input
+                        type="number"
+                        min={1}
+                        required
+                        value={tatDraft[key].value}
+                        onChange={(e) => updateTat(key, { value: e.target.value })}
+                        className="w-20"
+                      />
+                      <Select value={tatDraft[key].unit} onChange={(e) => updateTat(key, { unit: e.target.value as TatUnit })} className="w-24">
+                        <option value="DAYS">Days</option>
+                        <option value="HOURS">Hours</option>
+                      </Select>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
             {error && <ErrorBanner message={error} />}
             <Button type="submit" disabled={createMatter.isPending}>
               {createMatter.isPending ? 'Creating…' : 'Create Matter'}
