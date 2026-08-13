@@ -133,15 +133,6 @@ function EmployeeDashboardView() {
     <div>
       <PageHeader title="My Dashboard" />
 
-      {data.myOpenCourtPunch && (
-        <div className="mb-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          You have an open court punch-in since {formatDateTime(data.myOpenCourtPunch.punch_in_at)}.{' '}
-          <Link href="/court" className="font-medium underline">
-            Punch out
-          </Link>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <h2 className="mb-3 text-sm font-semibold text-slate-900">Matters Needing Action ({data.myMattersNeedingAction.length})</h2>

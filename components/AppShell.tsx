@@ -15,7 +15,7 @@ const employeeNav: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/matters', label: 'My Matters' },
   { href: '/tasks', label: 'My Tasks' },
-  { href: '/court', label: 'Court Punch' }
+  { href: '/court', label: 'Court Appearances' }
 ];
 
 const adminTopNav: NavItem[] = [
@@ -23,7 +23,7 @@ const adminTopNav: NavItem[] = [
   { href: '/admin/approvals', label: 'Approvals' },
   { href: '/matters', label: 'Matters' },
   { href: '/tasks', label: 'Tasks' },
-  { href: '/admin/court-punches', label: 'Court Punches' },
+  { href: '/admin/court-appearances', label: 'Court Appearances' },
   { href: '/admin/scoreboard', label: 'Scoreboard' }
 ];
 

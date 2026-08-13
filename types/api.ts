@@ -42,7 +42,7 @@ export type ApprovalCycle = Tables<'approval_cycles'>;
 export type RequestStatus = Enums<'request_status_t'>;
 export type TransferRequest = Tables<'transfer_requests'>;
 
-export type CourtPunch = Tables<'court_punches'>;
+export type CourtAppearance = Tables<'court_appearances'>;
 
 export type TaskPriority = Enums<'task_priority_t'>;
 export type TaskStatus = Enums<'task_status_t'>;
@@ -76,7 +76,6 @@ export interface EmployeeDashboard {
   myOpenTasks: IndependentTask[];
   myPendingRequests: { transfers: TransferRequest[]; taskPushes: TaskPushRequest[] };
   myOverdueItems: { steps: MatterStepInstance[]; tasks: IndependentTask[] };
-  myOpenCourtPunch: CourtPunch | null;
 }
 
 // RPC JSON return shapes (not auto-generated -- these are the ad hoc objects
@@ -107,8 +106,8 @@ export interface PushRequestMutationResponse {
   pushRequest: TaskPushRequest;
   task?: IndependentTask;
 }
-export interface CourtPunchResponse {
-  punch: CourtPunch;
+export interface CourtAppearanceResponse {
+  appearance: CourtAppearance;
 }
 
 export type { Database };

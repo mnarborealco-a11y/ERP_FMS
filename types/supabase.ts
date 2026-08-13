@@ -98,48 +98,55 @@ export type Database = {
           },
         ]
       }
-      court_punches: {
+      court_appearances: {
         Row: {
-          court_name: string | null
+          appearance_date: string
+          appearance_id: string
+          court_name: string
           created_at: string
           employee_id: string
+          matter_id: string
           note: string | null
-          punch_id: string
-          punch_in_at: string
-          punch_out_at: string | null
         }
         Insert: {
-          court_name?: string | null
+          appearance_date: string
+          appearance_id?: string
+          court_name: string
           created_at?: string
           employee_id: string
+          matter_id: string
           note?: string | null
-          punch_id?: string
-          punch_in_at?: string
-          punch_out_at?: string | null
         }
         Update: {
-          court_name?: string | null
+          appearance_date?: string
+          appearance_id?: string
+          court_name?: string
           created_at?: string
           employee_id?: string
+          matter_id?: string
           note?: string | null
-          punch_id?: string
-          punch_in_at?: string
-          punch_out_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "court_punches_employee_id_fkey"
+            foreignKeyName: "court_appearances_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "active_employees"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "court_punches_employee_id_fkey"
+            foreignKeyName: "court_appearances_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "court_appearances_matter_id_fkey"
+            columns: ["matter_id"]
+            isOneToOne: false
+            referencedRelation: "matters"
+            referencedColumns: ["matter_id"]
           },
         ]
       }
@@ -761,11 +768,15 @@ export type Database = {
         }
         Returns: string
       }
-      court_punch_in: {
-        Args: { p_court_name: string; p_note?: string }
+      court_appearances_create: {
+        Args: {
+          p_appearance_date: string
+          p_court_name: string
+          p_matter_id: string
+          p_note?: string
+        }
         Returns: Json
       }
-      court_punch_out: { Args: { p_punch_id: string }; Returns: Json }
       current_role_claim: { Args: never; Returns: string }
       dashboard_admin: { Args: never; Returns: Json }
       dashboard_employee: { Args: never; Returns: Json }
