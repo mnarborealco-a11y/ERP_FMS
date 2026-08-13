@@ -59,7 +59,13 @@ export interface ScoreSummaryRow {
   employeeId: string;
   name: string;
   totalPoints: number;
+  avgPointsPerTwoWeeks: number;
   byType: Partial<Record<ScoreEventType, number>>;
+}
+
+export interface MyScoreSummary {
+  totalPoints: number;
+  avgPointsPerTwoWeeks: number;
 }
 
 export interface AdminDashboard {

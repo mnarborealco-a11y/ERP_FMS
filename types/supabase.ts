@@ -961,6 +961,7 @@ export type Database = {
         }
         Returns: number
       }
+      scoring_get_my_summary: { Args: never; Returns: Json }
       scoring_get_summary: { Args: never; Returns: Json }
       scoring_recompute_overdue_now: { Args: never; Returns: Json }
       start_of_next_day: { Args: { ts: string }; Returns: string }

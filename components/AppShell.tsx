@@ -15,7 +15,8 @@ const employeeNav: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/matters', label: 'My Matters' },
   { href: '/tasks', label: 'My Tasks' },
-  { href: '/court', label: 'Court Appearances' }
+  { href: '/court', label: 'Court Appearances' },
+  { href: '/my-score', label: 'My Score' }
 ];
 
 const adminTopNav: NavItem[] = [

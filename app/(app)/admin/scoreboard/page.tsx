@@ -32,7 +32,7 @@ export default function ScoreboardPage() {
     <div>
       <PageHeader
         title="Scoreboard"
-        subtitle="+1 for each resubmission to the Founder after the first; +1 per extra working day an item is overdue."
+        subtitle="+1 for each resubmission to the Founder after the first; +1 per extra working day an item is overdue. Avg / 2 Weeks is a rolling average (points in the last 14 days ÷ 2)."
         actions={
           <Button variant="secondary" onClick={() => recompute.mutate()} disabled={recompute.isPending}>
             {recompute.isPending ? 'Scanning…' : 'Recompute Overdue Now'}
@@ -61,6 +61,7 @@ export default function ScoreboardPage() {
                 <th className="px-4 py-2">Overdue Steps</th>
                 <th className="px-4 py-2">Overdue Tasks</th>
                 <th className="px-4 py-2">Total Points</th>
+                <th className="px-4 py-2">Avg / 2 Weeks</th>
               </tr>
             </thead>
             <tbody>
@@ -75,6 +76,7 @@ export default function ScoreboardPage() {
                   <td className="px-4 py-2">{row.byType.OVERDUE_STEP ?? 0}</td>
                   <td className="px-4 py-2">{row.byType.OVERDUE_TASK ?? 0}</td>
                   <td className="px-4 py-2 font-semibold">{row.totalPoints}</td>
+                  <td className="px-4 py-2 font-semibold">{row.avgPointsPerTwoWeeks}</td>
                 </tr>
               ))}
             </tbody>

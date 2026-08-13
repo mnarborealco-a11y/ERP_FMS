@@ -82,10 +82,12 @@ All pending-decision items (founder-review drafts, transfer requests, task push 
 
 ## Scoring
 
-Auto-computed, append-only `score_ledger` — never manually edited, totals always aggregated on read (`scoring_get_summary`/direct `score_ledger` reads).
+Auto-computed, append-only `score_ledger` — never manually edited, totals always aggregated on read (`scoring_get_summary`/`scoring_get_my_summary`/direct `score_ledger` reads).
 
 - +1 per founder resubmission (written directly by `matters_submit_to_founder`).
 - +1 per working day an item (matter step or independent task) stays overdue past its due date — see `score_overdue_for_ref` in the RPC catalog above.
+- `scoring_get_summary` (Founder/Admin only, `/admin/scoreboard`) returns, per employee, both the lifetime `totalPoints` and a rolling `avgPointsPerTwoWeeks` (sum of points in the trailing 14 days ÷ 2) — the lifetime total was kept alongside the average deliberately, not replaced by it.
+- `scoring_get_my_summary` (Employee only, `/my-score`) returns the same two numbers scoped to the caller's own `employee_id` — summary only, no line-item ledger and no visibility into other employees. Employees could already `SELECT` their own `score_ledger` rows via RLS, but this RPC keeps the rolling-window math server-side instead of duplicating it in the frontend.
 
 ## Roles
 
