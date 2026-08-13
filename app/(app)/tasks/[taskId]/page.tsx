@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { useAuth, isApiError } from '@/lib/auth';
 import { callApi } from '@/lib/apiClient';
 import { useEmployees, employeeName } from '@/lib/useEmployees';
@@ -13,17 +14,20 @@ import {
   Field,
   Input,
   LoadingState,
+  Modal,
   PageHeader,
+  Select,
   Textarea,
   formatDate,
   formatDateTime,
   isOverdue
 } from '@/components/ui';
-import type { TaskGetResponse, TaskStatus } from '@/types/api';
+import type { TaskGetResponse, TaskMutationResponse, TaskPriority, TaskStatus } from '@/types/api';
 
 export default function TaskDetailPage({ params }: { params: Promise<{ taskId: string }> }) {
   const { taskId } = use(params);
   const { user } = useAuth();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { data: employees } = useEmployees();
   const isAdmin = user?.role === 'FOUNDER_ADMIN';
@@ -77,6 +81,31 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
     onError: (err) => setError(isApiError(err) ? err.message : 'Something went wrong.')
   });
 
+  const [showEdit, setShowEdit] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editPriority, setEditPriority] = useState<TaskPriority>('MEDIUM');
+  const [editError, setEditError] = useState<string | null>(null);
+  const editTask = useMutation({
+    mutationFn: () =>
+      callApi<TaskMutationResponse>('tasks_admin_update', { p_task_id: taskId, p_title: editTitle, p_description: editDescription, p_priority: editPriority }),
+    onSuccess: () => {
+      setEditError(null);
+      setShowEdit(false);
+      invalidate();
+    },
+    onError: (err) => setEditError(isApiError(err) ? err.message : 'Something went wrong.')
+  });
+
+  const deleteTask = useMutation({
+    mutationFn: () => callApi('tasks_admin_delete', { p_task_id: taskId }),
+    onSuccess: () => {
+      invalidate();
+      router.push('/tasks');
+    },
+    onError: (err) => setError(isApiError(err) ? err.message : 'Something went wrong.')
+  });
+
   if (isLoading || !data) return <LoadingState />;
   const { task, pushRequests } = data;
   if (!task) return <ErrorBanner message="Task not found." />;
@@ -85,7 +114,70 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
 
   return (
     <div>
-      <PageHeader title={task.title} subtitle={`Assigned to ${employeeName(employees, task.assigned_to)}`} />
+      <PageHeader
+        title={task.title}
+        subtitle={`Assigned to ${employeeName(employees, task.assigned_to)}`}
+        actions={
+          isAdmin ? (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setEditTitle(task.title);
+                  setEditDescription(task.description ?? '');
+                  setEditPriority(task.priority);
+                  setEditError(null);
+                  setShowEdit(true);
+                }}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="danger"
+                disabled={deleteTask.isPending}
+                onClick={() => {
+                  if (window.confirm(`Permanently delete "${task.title}"? This cannot be undone.`)) {
+                    deleteTask.mutate();
+                  }
+                }}
+              >
+                {deleteTask.isPending ? 'Deleting…' : 'Delete'}
+              </Button>
+            </>
+          ) : undefined
+        }
+      />
+
+      {isAdmin && (
+        <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Edit Task">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              editTask.mutate();
+            }}
+            className="flex flex-col gap-3"
+          >
+            <Field label="Title">
+              <Input required value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+            </Field>
+            <Field label="Description">
+              <Textarea rows={2} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+            </Field>
+            <Field label="Priority">
+              <Select value={editPriority} onChange={(e) => setEditPriority(e.target.value as TaskPriority)}>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+                <option value="URGENT">Urgent</option>
+              </Select>
+            </Field>
+            {editError && <ErrorBanner message={editError} />}
+            <Button type="submit" disabled={editTask.isPending}>
+              {editTask.isPending ? 'Saving…' : 'Save'}
+            </Button>
+          </form>
+        </Modal>
+      )}
 
       {error && (
         <div className="mb-4">

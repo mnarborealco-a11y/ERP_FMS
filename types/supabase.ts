@@ -774,6 +774,11 @@ export type Database = {
       is_non_working_day: { Args: { ts: string }; Returns: boolean }
       local_midnight: { Args: { ts: string }; Returns: string }
       matter_detail: { Args: { p_matter_id: string }; Returns: Json }
+      matters_admin_delete: { Args: { p_matter_id: string }; Returns: Json }
+      matters_admin_update: {
+        Args: { p_client_name: string; p_matter_id: string; p_title: string }
+        Returns: Json
+      }
       matters_complete_filing: { Args: { p_matter_id: string }; Returns: Json }
       matters_complete_step1: { Args: { p_matter_id: string }; Returns: Json }
       matters_complete_step2_and_submit: {
@@ -949,8 +954,18 @@ export type Database = {
       scoring_recompute_overdue_now: { Args: never; Returns: Json }
       start_of_next_day: { Args: { ts: string }; Returns: string }
       task_detail: { Args: { p_task_id: string }; Returns: Json }
+      tasks_admin_delete: { Args: { p_task_id: string }; Returns: Json }
       tasks_admin_push_due_date: {
         Args: { p_new_due_at: string; p_notes?: string; p_task_id: string }
+        Returns: Json
+      }
+      tasks_admin_update: {
+        Args: {
+          p_description: string
+          p_priority: Database["public"]["Enums"]["task_priority_t"]
+          p_task_id: string
+          p_title: string
+        }
         Returns: Json
       }
       tasks_create: {

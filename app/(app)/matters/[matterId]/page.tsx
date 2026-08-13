@@ -3,6 +3,7 @@
 import { use, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth, isApiError } from '@/lib/auth';
 import { callApi, type RpcName } from '@/lib/apiClient';
 import { useEmployees, employeeName } from '@/lib/useEmployees';
@@ -12,18 +13,21 @@ import {
   Card,
   ErrorBanner,
   Field,
+  Input,
   LoadingState,
+  Modal,
   PageHeader,
   Select,
   Textarea,
   formatDateTime,
   isOverdue
 } from '@/components/ui';
-import type { ApprovalCycle, Matter, MatterGetResponse } from '@/types/api';
+import type { ApprovalCycle, Matter, MatterGetResponse, MatterMutationResponse } from '@/types/api';
 
 export default function MatterDetailPage({ params }: { params: Promise<{ matterId: string }> }) {
   const { matterId } = use(params);
   const { user } = useAuth();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { data: employees } = useEmployees();
 
@@ -76,6 +80,30 @@ export default function MatterDetailPage({ params }: { params: Promise<{ matterI
     onError: (err) => setActionError(isApiError(err) ? err.message : 'Something went wrong.')
   });
 
+  const [showEdit, setShowEdit] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editClientName, setEditClientName] = useState('');
+  const [editError, setEditError] = useState<string | null>(null);
+  const editMatter = useMutation({
+    mutationFn: () => callApi<MatterMutationResponse>('matters_admin_update', { p_matter_id: matterId, p_title: editTitle, p_client_name: editClientName }),
+    onSuccess: () => {
+      setEditError(null);
+      setShowEdit(false);
+      invalidateAll();
+    },
+    onError: (err) => setEditError(isApiError(err) ? err.message : 'Something went wrong.')
+  });
+
+  const deleteMatter = useMutation({
+    mutationFn: () => callApi('matters_admin_delete', { p_matter_id: matterId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['matters'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      router.push('/matters');
+    },
+    onError: (err) => setActionError(isApiError(err) ? err.message : 'Something went wrong.')
+  });
+
   if (isLoading || !data) return <LoadingState />;
   if (error) return <ErrorBanner message={isApiError(error) ? error.message : 'Failed to load matter.'} />;
 
@@ -102,7 +130,58 @@ export default function MatterDetailPage({ params }: { params: Promise<{ matterI
       <PageHeader
         title={`${matter.matter_id} — ${matter.title}`}
         subtitle={`${matter.type === 'LITIGATION' ? 'Litigation' : 'Non-Litigation'} · Client: ${matter.client_name || '—'}`}
+        actions={
+          isAdmin ? (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setEditTitle(matter.title);
+                  setEditClientName(matter.client_name ?? '');
+                  setEditError(null);
+                  setShowEdit(true);
+                }}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="danger"
+                disabled={deleteMatter.isPending}
+                onClick={() => {
+                  if (window.confirm(`Permanently delete ${matter.matter_id} — ${matter.title}? This cannot be undone.`)) {
+                    deleteMatter.mutate();
+                  }
+                }}
+              >
+                {deleteMatter.isPending ? 'Deleting…' : 'Delete'}
+              </Button>
+            </>
+          ) : undefined
+        }
       />
+
+      {isAdmin && (
+        <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Edit Matter">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              editMatter.mutate();
+            }}
+            className="flex flex-col gap-3"
+          >
+            <Field label="Title">
+              <Input required value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+            </Field>
+            <Field label="Client name">
+              <Input value={editClientName} onChange={(e) => setEditClientName(e.target.value)} />
+            </Field>
+            {editError && <ErrorBanner message={editError} />}
+            <Button type="submit" disabled={editMatter.isPending}>
+              {editMatter.isPending ? 'Saving…' : 'Save'}
+            </Button>
+          </form>
+        </Modal>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">

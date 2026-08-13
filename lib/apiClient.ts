@@ -1,8 +1,8 @@
 // Thin wrapper around the Supabase client's RPC surface. Every business-logic
 // action lives in a Postgres function (see the `supabase/` migrations) and is
 // invoked here by name, e.g. callApi('matters_complete_step1', { p_matter_id }).
-// Direct table/view reads (holidays, tat_settings, active_employees, and any
-// RLS-scoped `matters`/`independent_tasks`/etc. selects) go straight through
+// Direct table/view reads (holidays, active_employees, and any RLS-scoped
+// `matters`/`independent_tasks`/etc. selects) go straight through
 // the `supabase` client exported from `./supabaseClient` instead of this file.
 
 import { PostgrestError } from '@supabase/supabase-js';
