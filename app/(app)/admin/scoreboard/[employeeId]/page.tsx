@@ -36,7 +36,10 @@ export default function EmployeeLedgerPage({ params }: { params: Promise<{ emplo
 
   return (
     <div>
-      <PageHeader title={`${employeeName(employees, employeeId)} — Score Ledger`} subtitle={`Total: ${total} point(s)`} />
+      <PageHeader
+        title={`${employeeName(employees, employeeId)} — Score Ledger`}
+        subtitle={`Total: ${total} penalty point(s) — lower is better`}
+      />
 
       {isLoading || !data ? (
         <LoadingState />
