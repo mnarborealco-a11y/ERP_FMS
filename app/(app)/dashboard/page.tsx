@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { callApi } from '@/lib/apiClient';
@@ -23,7 +25,13 @@ function useMatterTitles() {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  if (!user) return null;
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user?.role === 'SUPER_ADMIN') router.replace('/super-admin/companies');
+  }, [user, router]);
+
+  if (!user || user.role === 'SUPER_ADMIN') return null;
   return user.role === 'FOUNDER_ADMIN' ? <AdminDashboardView /> : <EmployeeDashboardView />;
 }
 

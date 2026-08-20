@@ -10,7 +10,13 @@ export default function RootPage() {
 
   useEffect(() => {
     if (loading) return;
-    router.replace(user ? '/dashboard' : '/login');
+    if (!user) {
+      router.replace('/login');
+    } else if (user.role === 'SUPER_ADMIN') {
+      router.replace('/super-admin/companies');
+    } else {
+      router.replace('/dashboard');
+    }
   }, [loading, user, router]);
 
   return null;
