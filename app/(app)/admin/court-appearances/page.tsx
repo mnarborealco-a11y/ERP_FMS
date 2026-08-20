@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { useEmployees, employeeName } from '@/lib/useEmployees';
 import { Card, EmptyState, LoadingState, PageHeader, Select, formatDate } from '@/components/ui';
-import type { CourtAppearance } from '@/types/api';
+import type { CourtAppearance, Matter } from '@/types/api';
 
 export default function AdminCourtAppearancesPage() {
   const { data: employees } = useEmployees();
@@ -22,6 +22,16 @@ export default function AdminCourtAppearancesPage() {
       return data;
     }
   });
+  const { data: matters } = useQuery({
+    queryKey: ['matters', 'titles'],
+    queryFn: async (): Promise<Matter[]> => {
+      const { data, error } = await supabase.from('matters').select('*');
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 60_000
+  });
+  const matterById = new Map((matters ?? []).map((m) => [m.matter_id, m]));
 
   const appearances = data ?? [];
 
@@ -63,7 +73,7 @@ export default function AdminCourtAppearancesPage() {
                   <td className="px-4 py-2 font-medium">{employeeName(employees, a.employee_id)}</td>
                   <td className="px-4 py-2">
                     <Link href={`/matters/${a.matter_id}`} className="hover:underline">
-                      {a.matter_id}
+                      {matterById.get(a.matter_id)?.title ?? 'Matter'}
                     </Link>
                   </td>
                   <td className="px-4 py-2">{a.court_name}</td>

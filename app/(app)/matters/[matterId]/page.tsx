@@ -128,7 +128,7 @@ export default function MatterDetailPage({ params }: { params: Promise<{ matterI
   return (
     <div>
       <PageHeader
-        title={`${matter.matter_id} — ${matter.title}`}
+        title={matter.title}
         subtitle={`${matter.type === 'LITIGATION' ? 'Litigation' : 'Non-Litigation'} · Client: ${matter.client_name || '—'}`}
         actions={
           isAdmin ? (
@@ -148,7 +148,7 @@ export default function MatterDetailPage({ params }: { params: Promise<{ matterI
                 variant="danger"
                 disabled={deleteMatter.isPending}
                 onClick={() => {
-                  if (window.confirm(`Permanently delete ${matter.matter_id} — ${matter.title}? This cannot be undone.`)) {
+                  if (window.confirm(`Permanently delete ${matter.title}? This cannot be undone.`)) {
                     deleteMatter.mutate();
                   }
                 }}

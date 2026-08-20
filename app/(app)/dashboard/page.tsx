@@ -4,8 +4,22 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { callApi } from '@/lib/apiClient';
+import { supabase } from '@/lib/supabaseClient';
 import { Badge, Card, EmptyState, LoadingState, PageHeader, formatDate, formatDateTime } from '@/components/ui';
 import type { AdminDashboard, EmployeeDashboard } from '@/types/api';
+
+function useMatterTitles() {
+  const { data } = useQuery({
+    queryKey: ['matters', 'titles'],
+    queryFn: async (): Promise<Map<string, string>> => {
+      const { data, error } = await supabase.from('matters').select('matter_id, title');
+      if (error) throw error;
+      return new Map(data.map((m) => [m.matter_id, m.title]));
+    },
+    staleTime: 60_000
+  });
+  return (matterId: string) => data?.get(matterId) ?? matterId;
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -18,6 +32,7 @@ function AdminDashboardView() {
     queryKey: ['dashboard', 'admin'],
     queryFn: () => callApi<AdminDashboard>('dashboard_admin')
   });
+  const matterTitle = useMatterTitles();
 
   if (isLoading || !data) return <LoadingState />;
 
@@ -47,7 +62,8 @@ function AdminDashboardView() {
               {data.pendingFounderDecisions.map((c) => (
                 <li key={c.cycle_id}>
                   <Link href={`/matters/${c.matter_id}`} className="block rounded-md border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
-                    <span className="font-medium">{c.matter_id}</span> — iteration {c.founder_iteration_number} · submitted {formatDateTime(c.submitted_at)}
+                    <span className="font-medium">{matterTitle(c.matter_id)}</span> — iteration {c.founder_iteration_number} · submitted{' '}
+                    {formatDateTime(c.submitted_at)}
                   </Link>
                 </li>
               ))}
@@ -64,7 +80,7 @@ function AdminDashboardView() {
               {data.pendingTransfers.map((t) => (
                 <li key={t.transfer_request_id}>
                   <Link href="/admin/approvals" className="block rounded-md border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
-                    <span className="font-medium">{t.matter_id}</span>: {t.reason}
+                    <span className="font-medium">{matterTitle(t.matter_id)}</span>: {t.reason}
                   </Link>
                 </li>
               ))}
@@ -81,7 +97,7 @@ function AdminDashboardView() {
               {data.pendingTaskPushes.map((p) => (
                 <li key={p.push_request_id}>
                   <Link href="/admin/approvals" className="block rounded-md border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
-                    <span className="font-medium">{p.task_id}</span> → {formatDate(p.requested_due_at)}: {p.reason}
+                    Task due-date push → {formatDate(p.requested_due_at)}: {p.reason}
                   </Link>
                 </li>
               ))}
@@ -100,7 +116,7 @@ function AdminDashboardView() {
               {data.overdueSteps.map((s) => (
                 <li key={s.step_instance_id} className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm">
                   <Link href={`/matters/${s.matter_id}`} className="font-medium">
-                    {s.matter_id}
+                    {matterTitle(s.matter_id)}
                   </Link>{' '}
                   — {s.step_type.replaceAll('_', ' ')} <Badge tone="red">overdue</Badge>
                 </li>
@@ -108,9 +124,9 @@ function AdminDashboardView() {
               {data.overdueTasks.map((t) => (
                 <li key={t.task_id} className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm">
                   <Link href={`/tasks/${t.task_id}`} className="font-medium">
-                    {t.task_id}
+                    {t.title}
                   </Link>{' '}
-                  — {t.title} <Badge tone="red">overdue</Badge>
+                  <Badge tone="red">overdue</Badge>
                 </li>
               ))}
             </ul>
@@ -126,6 +142,7 @@ function EmployeeDashboardView() {
     queryKey: ['dashboard', 'employee'],
     queryFn: () => callApi<EmployeeDashboard>('dashboard_employee')
   });
+  const matterTitle = useMatterTitles();
 
   if (isLoading || !data) return <LoadingState />;
 
@@ -143,7 +160,7 @@ function EmployeeDashboardView() {
               {data.myMattersNeedingAction.map((m) => (
                 <li key={m.matter_id}>
                   <Link href={`/matters/${m.matter_id}`} className="block rounded-md border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
-                    <span className="font-medium">{m.matter_id}</span> {m.title} — {m.current_step.replaceAll('_', ' ')}
+                    <span className="font-medium">{m.title}</span> — {m.current_step.replaceAll('_', ' ')}
                   </Link>
                 </li>
               ))}
@@ -176,12 +193,12 @@ function EmployeeDashboardView() {
             <ul className="flex flex-col gap-2 text-sm">
               {data.myPendingRequests.transfers.map((t) => (
                 <li key={t.transfer_request_id} className="rounded-md border border-slate-200 px-3 py-2">
-                  Transfer of {t.matter_id} → <Badge tone="amber">pending</Badge>
+                  Transfer of {matterTitle(t.matter_id)} → <Badge tone="amber">pending</Badge>
                 </li>
               ))}
               {data.myPendingRequests.taskPushes.map((p) => (
                 <li key={p.push_request_id} className="rounded-md border border-slate-200 px-3 py-2">
-                  Push {p.task_id} to {formatDate(p.requested_due_at)} <Badge tone="amber">pending</Badge>
+                  Push due date to {formatDate(p.requested_due_at)} <Badge tone="amber">pending</Badge>
                 </li>
               ))}
             </ul>
@@ -199,7 +216,7 @@ function EmployeeDashboardView() {
               {data.myOverdueItems.steps.map((s) => (
                 <li key={s.step_instance_id} className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm">
                   <Link href={`/matters/${s.matter_id}`} className="font-medium">
-                    {s.matter_id}
+                    {matterTitle(s.matter_id)}
                   </Link>{' '}
                   — {s.step_type.replaceAll('_', ' ')}
                 </li>

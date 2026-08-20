@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { isApiError } from '@/lib/auth';
 import { useEmployees, employeeName } from '@/lib/useEmployees';
 import { Badge, Button, Card, EmptyState, ErrorBanner, PageHeader, Textarea, formatDate, formatDateTime } from '@/components/ui';
-import type { AdminDashboard, Matter, TaskPushRequest, TransferRequest } from '@/types/api';
+import type { AdminDashboard, IndependentTask, Matter, TaskPushRequest, TransferRequest } from '@/types/api';
 
 /**
  * Single "approvals inbox" tab: every request type that needs a
@@ -48,8 +48,17 @@ export default function ApprovalsPage() {
       return data;
     }
   });
+  const { data: tasks } = useQuery({
+    queryKey: ['tasks', 'list'],
+    queryFn: async (): Promise<IndependentTask[]> => {
+      const { data, error } = await supabase.from('independent_tasks').select('*');
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const matterById = new Map((matters ?? []).map((m) => [m.matter_id, m]));
+  const taskById = new Map((tasks ?? []).map((t) => [t.task_id, t]));
 
   const [notesByKey, setNotesByKey] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
@@ -118,9 +127,8 @@ export default function ApprovalsPage() {
                   <li key={c.cycle_id} className="rounded-md border border-slate-200 p-3">
                     <div className="mb-1 text-sm">
                       <Link href={`/matters/${c.matter_id}`} className="font-medium hover:underline">
-                        {c.matter_id}
+                        {matter?.title ?? 'Matter'}
                       </Link>{' '}
-                      {matter && <span className="text-slate-600">— {matter.title}</span>}{' '}
                       <Badge tone="purple">iteration #{c.founder_iteration_number}</Badge>
                     </div>
                     <div className="mb-2 text-xs text-slate-500">
@@ -171,7 +179,7 @@ export default function ApprovalsPage() {
                   <li key={t.transfer_request_id} className="rounded-md border border-slate-200 p-3">
                     <div className="mb-1 text-sm">
                       <Link href={`/matters/${t.matter_id}`} className="font-medium hover:underline">
-                        {t.matter_id}
+                        {matterById.get(t.matter_id)?.title ?? 'Matter'}
                       </Link>
                       : {employeeName(employees, t.from_employee_id)} → {employeeName(employees, t.to_employee_id)}
                     </div>
@@ -213,7 +221,7 @@ export default function ApprovalsPage() {
                   <li key={t.transfer_request_id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm">
                     <span>
                       <Link href={`/matters/${t.matter_id}`} className="font-medium hover:underline">
-                        {t.matter_id}
+                        {matterById.get(t.matter_id)?.title ?? 'Matter'}
                       </Link>{' '}
                       {employeeName(employees, t.from_employee_id)} → {employeeName(employees, t.to_employee_id)}
                     </span>
@@ -237,7 +245,7 @@ export default function ApprovalsPage() {
                   <li key={p.push_request_id} className="rounded-md border border-slate-200 p-3">
                     <div className="mb-1 text-sm">
                       <Link href={`/tasks/${p.task_id}`} className="font-medium hover:underline">
-                        {p.task_id}
+                        {taskById.get(p.task_id)?.title ?? 'Task'}
                       </Link>
                       : {formatDate(p.current_due_at)} → {formatDate(p.requested_due_at)}
                     </div>
@@ -276,7 +284,7 @@ export default function ApprovalsPage() {
                   <li key={p.push_request_id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm">
                     <span>
                       <Link href={`/tasks/${p.task_id}`} className="font-medium hover:underline">
-                        {p.task_id}
+                        {taskById.get(p.task_id)?.title ?? 'Task'}
                       </Link>{' '}
                       {formatDate(p.current_due_at)} → {formatDate(p.requested_due_at)}
                     </span>

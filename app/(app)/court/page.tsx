@@ -87,7 +87,7 @@ export default function CourtAppearancesPage() {
               <option value="">Select matter…</option>
               {myMatters?.map((m) => (
                 <option key={m.matter_id} value={m.matter_id}>
-                  {m.matter_id} — {m.title}
+                  {m.title}
                 </option>
               ))}
             </Select>
@@ -124,10 +124,7 @@ export default function CourtAppearancesPage() {
             <tbody>
               {data.map((a) => (
                 <tr key={a.appearance_id} className="border-b border-slate-100 last:border-0">
-                  <td className="px-4 py-2">
-                    {a.matter_id}
-                    {matterTitle(a.matter_id) && <span className="text-slate-500"> — {matterTitle(a.matter_id)}</span>}
-                  </td>
+                  <td className="px-4 py-2">{matterTitle(a.matter_id) ?? '—'}</td>
                   <td className="px-4 py-2">{a.court_name}</td>
                   <td className="px-4 py-2">{formatDate(a.appearance_date)}</td>
                   <td className="px-4 py-2 text-slate-500">{a.note || '—'}</td>

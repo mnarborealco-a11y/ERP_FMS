@@ -3,11 +3,12 @@
 import { FormEvent, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
-import { isApiError } from '@/lib/auth';
+import { isApiError, useAuth } from '@/lib/auth';
 import { Button, Card, ErrorBanner, Field, Input, PageHeader, formatDate } from '@/components/ui';
 import type { HolidayEntry } from '@/types/api';
 
 export default function HolidaysPage() {
+  const { user } = useAuth();
   const { data: holidays } = useQuery({
     queryKey: ['holidays'],
     queryFn: async (): Promise<HolidayEntry[]> => {
@@ -25,7 +26,8 @@ export default function HolidaysPage() {
 
   const addHoliday = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('holidays').insert({ date, label });
+      if (!user?.companyId) throw new Error('No company on your account.');
+      const { error } = await supabase.from('holidays').insert({ date, label, company_id: user.companyId });
       if (error) throw error;
     },
     onSuccess: () => {

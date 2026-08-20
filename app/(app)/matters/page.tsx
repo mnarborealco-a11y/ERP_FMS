@@ -183,9 +183,8 @@ export default function MattersListPage() {
                 <tr key={m.matter_id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                   <td className="px-4 py-2">
                     <Link href={`/matters/${m.matter_id}`} className="font-medium text-slate-900 hover:underline">
-                      {m.matter_id}
+                      {m.title}
                     </Link>
-                    <div className="text-xs text-slate-500">{m.title}</div>
                   </td>
                   <td className="px-4 py-2">{m.type === 'LITIGATION' ? 'Litigation' : 'Non-Litigation'}</td>
                   <td className="px-4 py-2">{m.client_name || '—'}</td>

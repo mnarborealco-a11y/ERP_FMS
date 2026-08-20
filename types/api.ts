@@ -19,7 +19,11 @@ export interface PublicUser {
   email: string;
   role: Role;
   status?: UserStatus;
+  companyId: string | null;
 }
+
+export type CompanyStatus = Enums<'company_status_t'>;
+export type Company = Tables<'companies'>;
 
 export type HolidayEntry = Tables<'holidays'>;
 export type TatUnit = Enums<'tat_unit_t'>;

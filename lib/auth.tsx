@@ -27,7 +27,8 @@ function sessionToUser(session: Session | null): PublicUser | null {
     userId: session.user.id,
     name: (session.user.user_metadata?.name as string) ?? '',
     email: session.user.email ?? '',
-    role
+    role,
+    companyId: (session.user.app_metadata?.company_id as string | undefined) ?? null
   };
 }
 

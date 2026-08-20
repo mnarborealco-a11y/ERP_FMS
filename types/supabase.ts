@@ -17,6 +17,7 @@ export type Database = {
       approval_cycles: {
         Row: {
           client_round_number: number
+          company_id: string
           created_at: string
           cycle_id: string
           cycle_type: Database["public"]["Enums"]["cycle_type_t"]
@@ -32,6 +33,7 @@ export type Database = {
         }
         Insert: {
           client_round_number?: number
+          company_id: string
           created_at?: string
           cycle_id?: string
           cycle_type: Database["public"]["Enums"]["cycle_type_t"]
@@ -47,6 +49,7 @@ export type Database = {
         }
         Update: {
           client_round_number?: number
+          company_id?: string
           created_at?: string
           cycle_id?: string
           cycle_type?: Database["public"]["Enums"]["cycle_type_t"]
@@ -61,6 +64,13 @@ export type Database = {
           submitted_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "approval_cycles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "approval_cycles_decided_by_fkey"
             columns: ["decided_by"]
@@ -98,10 +108,56 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          color_primary: string | null
+          color_secondary: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          max_users: number
+          name: string
+          slug: string
+          status: Database["public"]["Enums"]["company_status_t"]
+          updated_at: string
+          works_saturday: boolean
+          works_sunday: boolean
+        }
+        Insert: {
+          color_primary?: string | null
+          color_secondary?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          max_users?: number
+          name: string
+          slug: string
+          status?: Database["public"]["Enums"]["company_status_t"]
+          updated_at?: string
+          works_saturday?: boolean
+          works_sunday?: boolean
+        }
+        Update: {
+          color_primary?: string | null
+          color_secondary?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          max_users?: number
+          name?: string
+          slug?: string
+          status?: Database["public"]["Enums"]["company_status_t"]
+          updated_at?: string
+          works_saturday?: boolean
+          works_sunday?: boolean
+        }
+        Relationships: []
+      }
       court_appearances: {
         Row: {
           appearance_date: string
           appearance_id: string
+          company_id: string
           court_name: string
           created_at: string
           employee_id: string
@@ -111,6 +167,7 @@ export type Database = {
         Insert: {
           appearance_date: string
           appearance_id?: string
+          company_id: string
           court_name: string
           created_at?: string
           employee_id: string
@@ -120,6 +177,7 @@ export type Database = {
         Update: {
           appearance_date?: string
           appearance_id?: string
+          company_id?: string
           court_name?: string
           created_at?: string
           employee_id?: string
@@ -127,6 +185,13 @@ export type Database = {
           note?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "court_appearances_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "court_appearances_employee_id_fkey"
             columns: ["employee_id"]
@@ -152,6 +217,7 @@ export type Database = {
       }
       holidays: {
         Row: {
+          company_id: string
           created_at: string
           created_by: string | null
           date: string
@@ -159,6 +225,7 @@ export type Database = {
           label: string | null
         }
         Insert: {
+          company_id: string
           created_at?: string
           created_by?: string | null
           date: string
@@ -166,6 +233,7 @@ export type Database = {
           label?: string | null
         }
         Update: {
+          company_id?: string
           created_at?: string
           created_by?: string | null
           date?: string
@@ -173,6 +241,13 @@ export type Database = {
           label?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "holidays_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "holidays_created_by_fkey"
             columns: ["created_by"]
@@ -193,6 +268,7 @@ export type Database = {
         Row: {
           assigned_by: string
           assigned_to: string
+          company_id: string
           completed_at: string | null
           created_at: string
           description: string | null
@@ -207,6 +283,7 @@ export type Database = {
         Insert: {
           assigned_by: string
           assigned_to: string
+          company_id: string
           completed_at?: string | null
           created_at?: string
           description?: string | null
@@ -221,6 +298,7 @@ export type Database = {
         Update: {
           assigned_by?: string
           assigned_to?: string
+          company_id?: string
           completed_at?: string | null
           created_at?: string
           description?: string | null
@@ -261,12 +339,20 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "independent_tasks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
         ]
       }
       matter_steps: {
         Row: {
           assigned_employee_id: string | null
           client_round_number: number
+          company_id: string
           completed_at: string | null
           created_at: string
           due_at: string | null
@@ -281,6 +367,7 @@ export type Database = {
         Insert: {
           assigned_employee_id?: string | null
           client_round_number?: number
+          company_id: string
           completed_at?: string | null
           created_at?: string
           due_at?: string | null
@@ -295,6 +382,7 @@ export type Database = {
         Update: {
           assigned_employee_id?: string | null
           client_round_number?: number
+          company_id?: string
           completed_at?: string | null
           created_at?: string
           due_at?: string | null
@@ -322,6 +410,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "matter_steps_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "matter_steps_matter_id_fkey"
             columns: ["matter_id"]
             isOneToOne: false
@@ -332,6 +427,7 @@ export type Database = {
       }
       matter_tat_settings: {
         Row: {
+          company_id: string
           created_at: string
           matter_id: string
           step_key: string
@@ -339,6 +435,7 @@ export type Database = {
           value: number
         }
         Insert: {
+          company_id: string
           created_at?: string
           matter_id: string
           step_key: string
@@ -346,6 +443,7 @@ export type Database = {
           value: number
         }
         Update: {
+          company_id?: string
           created_at?: string
           matter_id?: string
           step_key?: string
@@ -353,6 +451,13 @@ export type Database = {
           value?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "matter_tat_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "matter_tat_settings_matter_id_fkey"
             columns: ["matter_id"]
@@ -367,6 +472,7 @@ export type Database = {
           client_approved_in_current_round: boolean
           client_name: string | null
           client_round_counter: number
+          company_id: string
           created_at: string
           created_by: string | null
           current_step: Database["public"]["Enums"]["matter_step_t"]
@@ -384,6 +490,7 @@ export type Database = {
           client_approved_in_current_round?: boolean
           client_name?: string | null
           client_round_counter?: number
+          company_id: string
           created_at?: string
           created_by?: string | null
           current_step?: Database["public"]["Enums"]["matter_step_t"]
@@ -401,6 +508,7 @@ export type Database = {
           client_approved_in_current_round?: boolean
           client_name?: string | null
           client_round_counter?: number
+          company_id?: string
           created_at?: string
           created_by?: string | null
           current_step?: Database["public"]["Enums"]["matter_step_t"]
@@ -415,6 +523,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "matters_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "matters_created_by_fkey"
             columns: ["created_by"]
@@ -461,6 +576,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          company_id: string | null
           created_at: string
           id: string
           last_login_at: string | null
@@ -469,6 +585,7 @@ export type Database = {
           status: Database["public"]["Enums"]["user_status_t"]
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           id: string
           last_login_at?: string | null
@@ -477,6 +594,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["user_status_t"]
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           id?: string
           last_login_at?: string | null
@@ -484,10 +602,19 @@ export type Database = {
           role?: Database["public"]["Enums"]["role_t"]
           status?: Database["public"]["Enums"]["user_status_t"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       score_ledger: {
         Row: {
+          company_id: string
           created_at: string
           created_by: string
           description: string | null
@@ -499,6 +626,7 @@ export type Database = {
           ref_type: Database["public"]["Enums"]["score_ref_t"]
         }
         Insert: {
+          company_id: string
           created_at?: string
           created_by?: string
           description?: string | null
@@ -510,6 +638,7 @@ export type Database = {
           ref_type: Database["public"]["Enums"]["score_ref_t"]
         }
         Update: {
+          company_id?: string
           created_at?: string
           created_by?: string
           description?: string | null
@@ -521,6 +650,13 @@ export type Database = {
           ref_type?: Database["public"]["Enums"]["score_ref_t"]
         }
         Relationships: [
+          {
+            foreignKeyName: "score_ledger_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "score_ledger_employee_id_fkey"
             columns: ["employee_id"]
@@ -539,6 +675,7 @@ export type Database = {
       }
       task_push_requests: {
         Row: {
+          company_id: string
           current_due_at: string
           decided_at: string | null
           decided_by: string | null
@@ -553,6 +690,7 @@ export type Database = {
           task_id: string
         }
         Insert: {
+          company_id: string
           current_due_at: string
           decided_at?: string | null
           decided_by?: string | null
@@ -567,6 +705,7 @@ export type Database = {
           task_id: string
         }
         Update: {
+          company_id?: string
           current_due_at?: string
           decided_at?: string | null
           decided_by?: string | null
@@ -582,6 +721,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "task_push_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "task_push_requests_decided_by_fkey"
             columns: ["decided_by"]
             isOneToOne: false
@@ -591,6 +737,20 @@ export type Database = {
           {
             foreignKeyName: "task_push_requests_decided_by_fkey"
             columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_push_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "active_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_push_requests_requested_by_fkey"
+            columns: ["requested_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -606,6 +766,7 @@ export type Database = {
       }
       transfer_requests: {
         Row: {
+          company_id: string
           decided_at: string | null
           decided_by: string | null
           decision_notes: string | null
@@ -619,6 +780,7 @@ export type Database = {
           transfer_request_id: string
         }
         Insert: {
+          company_id: string
           decided_at?: string | null
           decided_by?: string | null
           decision_notes?: string | null
@@ -632,6 +794,7 @@ export type Database = {
           transfer_request_id?: string
         }
         Update: {
+          company_id?: string
           decided_at?: string | null
           decided_by?: string | null
           decision_notes?: string | null
@@ -645,6 +808,13 @@ export type Database = {
           transfer_request_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "transfer_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "transfer_requests_decided_by_fkey"
             columns: ["decided_by"]
@@ -694,6 +864,20 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "transfer_requests_to_employee_id_fkey"
+            columns: ["to_employee_id"]
+            isOneToOne: false
+            referencedRelation: "active_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfer_requests_to_employee_id_fkey"
+            columns: ["to_employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -716,11 +900,11 @@ export type Database = {
     }
     Functions: {
       add_working_days: {
-        Args: { days: number; start_at: string }
+        Args: { days: number; p_company_id: string; start_at: string }
         Returns: string
       }
       add_working_hours: {
-        Args: { hours: number; start_at: string }
+        Args: { hours: number; p_company_id: string; start_at: string }
         Returns: string
       }
       admin_list_users: { Args: never; Returns: Json }
@@ -735,6 +919,7 @@ export type Database = {
       }
       complete_matter_step: {
         Args: {
+          p_company_id: string
           p_matter_id: string
           p_reference_at?: string
           p_step_type: Database["public"]["Enums"]["step_type_t"]
@@ -742,6 +927,7 @@ export type Database = {
         Returns: {
           assigned_employee_id: string | null
           client_round_number: number
+          company_id: string
           completed_at: string | null
           created_at: string
           due_at: string | null
@@ -762,6 +948,7 @@ export type Database = {
       }
       compute_due_at: {
         Args: {
+          p_company_id: string
           start_at: string
           tat_unit: Database["public"]["Enums"]["tat_unit_t"]
           tat_value: number
@@ -777,12 +964,17 @@ export type Database = {
         }
         Returns: Json
       }
+      current_company_claim: { Args: never; Returns: string }
       current_role_claim: { Args: never; Returns: string }
       dashboard_admin: { Args: never; Returns: Json }
       dashboard_employee: { Args: never; Returns: Json }
       is_active_caller: { Args: never; Returns: boolean }
       is_admin_caller: { Args: never; Returns: boolean }
-      is_non_working_day: { Args: { ts: string }; Returns: boolean }
+      is_non_working_day: {
+        Args: { p_company_id: string; ts: string }
+        Returns: boolean
+      }
+      is_super_admin_caller: { Args: never; Returns: boolean }
       local_midnight: { Args: { ts: string }; Returns: string }
       matter_detail: { Args: { p_matter_id: string }; Returns: Json }
       matters_admin_delete: { Args: { p_matter_id: string }; Returns: Json }
@@ -853,6 +1045,7 @@ export type Database = {
         Args: {
           p_assigned_employee_id: string
           p_client_round_number: number
+          p_company_id: string
           p_matter_id: string
           p_started_at?: string
           p_step_type: Database["public"]["Enums"]["step_type_t"]
@@ -860,6 +1053,7 @@ export type Database = {
         Returns: {
           assigned_employee_id: string | null
           client_round_number: number
+          company_id: string
           completed_at: string | null
           created_at: string
           due_at: string | null
@@ -879,11 +1073,12 @@ export type Database = {
         }
       }
       require_any_matter: {
-        Args: { p_matter_id: string }
+        Args: { p_company_id: string; p_matter_id: string }
         Returns: {
           client_approved_in_current_round: boolean
           client_name: string | null
           client_round_counter: number
+          company_id: string
           created_at: string
           created_by: string | null
           current_step: Database["public"]["Enums"]["matter_step_t"]
@@ -915,11 +1110,12 @@ export type Database = {
         }
       }
       require_owned_matter: {
-        Args: { p_matter_id: string; p_user_id: string }
+        Args: { p_company_id: string; p_matter_id: string; p_user_id: string }
         Returns: {
           client_approved_in_current_round: boolean
           client_name: string | null
           client_round_counter: number
+          company_id: string
           created_at: string
           created_by: string | null
           current_step: Database["public"]["Enums"]["matter_step_t"]
@@ -942,6 +1138,7 @@ export type Database = {
       }
       resolve_step_tat: {
         Args: {
+          p_company_id: string
           p_matter_id: string
           p_start_at: string
           p_step_type: Database["public"]["Enums"]["step_type_t"]
@@ -951,6 +1148,7 @@ export type Database = {
       run_overdue_scan: { Args: never; Returns: number }
       score_overdue_for_ref: {
         Args: {
+          p_company_id: string
           p_description: string
           p_due_at: string
           p_employee_id: string
@@ -965,6 +1163,33 @@ export type Database = {
       scoring_get_summary: { Args: never; Returns: Json }
       scoring_recompute_overdue_now: { Args: never; Returns: Json }
       start_of_next_day: { Args: { ts: string }; Returns: string }
+      super_admin_create_company: {
+        Args: {
+          p_color_primary?: string
+          p_color_secondary?: string
+          p_logo_url?: string
+          p_max_users?: number
+          p_name: string
+          p_works_saturday?: boolean
+          p_works_sunday?: boolean
+        }
+        Returns: Json
+      }
+      super_admin_list_companies: { Args: never; Returns: Json }
+      super_admin_update_company: {
+        Args: {
+          p_color_primary?: string
+          p_color_secondary?: string
+          p_company_id: string
+          p_logo_url?: string
+          p_max_users?: number
+          p_name?: string
+          p_status?: Database["public"]["Enums"]["company_status_t"]
+          p_works_saturday?: boolean
+          p_works_sunday?: boolean
+        }
+        Returns: Json
+      }
       task_detail: { Args: { p_task_id: string }; Returns: Json }
       tasks_admin_delete: { Args: { p_task_id: string }; Returns: Json }
       tasks_admin_push_due_date: {
@@ -1014,11 +1239,12 @@ export type Database = {
         Returns: Json
       }
       working_days_late: {
-        Args: { due_at: string; reference_at: string }
+        Args: { due_at: string; p_company_id: string; reference_at: string }
         Returns: number
       }
     }
     Enums: {
+      company_status_t: "ACTIVE" | "SUSPENDED"
       cycle_decision_t: "PENDING" | "APPROVED" | "CHANGES_REQUESTED"
       cycle_type_t: "FOUNDER_REVIEW" | "CLIENT_REVIEW"
       initiated_by_t: "ADMIN" | "EMPLOYEE"
@@ -1037,7 +1263,7 @@ export type Database = {
       matter_type_t: "LITIGATION" | "NON_LITIGATION"
       push_status_t: "PENDING" | "APPROVED" | "REJECTED" | "AUTO_APPROVED"
       request_status_t: "PENDING" | "APPROVED" | "REJECTED"
-      role_t: "FOUNDER_ADMIN" | "EMPLOYEE"
+      role_t: "FOUNDER_ADMIN" | "EMPLOYEE" | "SUPER_ADMIN"
       score_event_t:
         | "FOUNDER_RESUBMISSION"
         | "OVERDUE_STEP"
@@ -1064,6 +1290,7 @@ export type Database = {
       auth_ctx: {
         user_id: string | null
         role: string | null
+        company_id: string | null
       }
     }
   }
@@ -1189,6 +1416,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      company_status_t: ["ACTIVE", "SUSPENDED"],
       cycle_decision_t: ["PENDING", "APPROVED", "CHANGES_REQUESTED"],
       cycle_type_t: ["FOUNDER_REVIEW", "CLIENT_REVIEW"],
       initiated_by_t: ["ADMIN", "EMPLOYEE"],
@@ -1208,7 +1436,7 @@ export const Constants = {
       matter_type_t: ["LITIGATION", "NON_LITIGATION"],
       push_status_t: ["PENDING", "APPROVED", "REJECTED", "AUTO_APPROVED"],
       request_status_t: ["PENDING", "APPROVED", "REJECTED"],
-      role_t: ["FOUNDER_ADMIN", "EMPLOYEE"],
+      role_t: ["FOUNDER_ADMIN", "EMPLOYEE", "SUPER_ADMIN"],
       score_event_t: [
         "FOUNDER_RESUBMISSION",
         "OVERDUE_STEP",
