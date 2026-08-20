@@ -8,7 +8,7 @@ Thumbs.db
 .mcp.json
 
 # Decommissioned Apps Script backend - contains plaintext bootstrap/demo passwords
-/backend/
+/google app/
 
 # dependencies
 /node_modules

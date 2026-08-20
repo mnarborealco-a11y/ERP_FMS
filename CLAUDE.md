@@ -1,13 +1,13 @@
-# Jlaw Associates — Ops App
+# Master ERP — Ops App
 
 Internal, cloud-hosted tool for a law firm's own use (not a multi-tenant product, despite "SaaS" in the original ask — that just meant "hosted web app"). Covers four requirements: matter workflow (FMS) for Litigation and Non-Litigation matters, court appearance logging, independent task assignment, and auto-computed employee scoring.
 
 ## Architecture
 
 - **Backend**: Supabase (Postgres project `cziglwqqellxnpzavxks`, region ap-southeast-1). All business logic lives in Postgres `plpgsql` functions exposed via `supabase.rpc()`; simple CRUD (holidays, list reads) goes straight through RLS-gated table/view access from the frontend. One Edge Function (`create-user`) handles admin-only user creation via the Supabase Auth Admin API.
-- **Frontend**: Next.js 16 (App Router, TypeScript, Tailwind v4) at the repo root, deployed to Vercel (zero-config — `backend/` and `docs/` are non-Next.js siblings and are simply ignored by the Next.js build). Talks to Supabase directly via `@supabase/supabase-js` — no custom API envelope.
+- **Frontend**: Next.js 16 (App Router, TypeScript, Tailwind v4) at the repo root, deployed to Vercel (zero-config — `google app/` and `docs/` are non-Next.js siblings and are simply ignored by the Next.js build). Talks to Supabase directly via `@supabase/supabase-js` — no custom API envelope.
 - **Auth**: native Supabase Auth (GoTrue). No self-signup — every account is created by an existing Founder/Admin via the `create-user` Edge Function, after the one bootstrapped account.
-- Migrated off Google Apps Script + Google Sheets (`backend/backend.gs`, now archived — see "Decommissioned backend" below). See `docs/DEPLOYMENT.md` for full setup/deploy steps.
+- Migrated off Google Apps Script + Google Sheets (`google app/backend.gs`, now archived — see "Decommissioned backend" below). See `docs/DEPLOYMENT.md` for full setup/deploy steps.
 
 ## Database schema
 
@@ -95,13 +95,13 @@ Exactly two: `FOUNDER_ADMIN` and `EMPLOYEE`. No self-signup — every account is
 
 ## Decommissioned backend
 
-`backend/backend.gs` and the bound Google Sheet are **no longer live** — fully replaced by the Supabase backend above as a one-time hard cutover (no dual-write, no data migration, since the Sheet only ever held pre-launch/demo data). The Apps Script Web App deployment should be undeployed and the Sheet archived; `backend/` and `docs/DEPLOYMENT.md`'s Apps Script section are kept in the repo for historical reference only — don't extend them, and don't point the frontend back at `NEXT_PUBLIC_APPS_SCRIPT_URL` (removed from `.env.local` in favor of `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY`).
+`google app/backend.gs` and the bound Google Sheet are **no longer live** — fully replaced by the Supabase backend above as a one-time hard cutover (no dual-write, no data migration, since the Sheet only ever held pre-launch/demo data). The Apps Script Web App deployment should be undeployed and the Sheet archived; `google app/` and `docs/DEPLOYMENT.md`'s Apps Script section are kept in the repo for historical reference only — don't extend them, and don't point the frontend back at `NEXT_PUBLIC_APPS_SCRIPT_URL` (removed from `.env.local` in favor of `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY`).
 
 ## Current state
 
 - Migration to Supabase complete on the backend side: schema, RLS, all RPCs, auth wiring, and the daily cron job are live and smoke-tested end-to-end (full matter lifecycle, RLS boundaries, idempotent scoring all verified against the real project).
 - Frontend has been ported to call Supabase directly (`lib/apiClient.ts`, `auth.tsx`, `useEmployees.ts`, `types/api.ts`, `supabaseClient.ts`, and every page under `app/`) — verify `npm run build` passes before treating this as done if you're picking this up mid-stream.
-- Restructured so the Next.js app lives at the repo root (not `frontend/`) — this makes Vercel deploys zero-config (no "Root Directory" dashboard setting needed), since Vercel's Next.js builder reads `package.json` from wherever it thinks the project root is, before any custom build command runs. `backend/` and `docs/` remain as non-Next.js sibling directories.
+- Restructured so the Next.js app lives at the repo root (not `frontend/`) — this makes Vercel deploys zero-config (no "Root Directory" dashboard setting needed), since Vercel's Next.js builder reads `package.json` from wherever it thinks the project root is, before any custom build command runs. `google app/` and `docs/` remain as non-Next.js sibling directories.
 - Git repo pushed to `github.com/mnarborealco-a11y/ERP_FMS`.
 - TAT moved from a global template (`tat_settings`, dropped) to opt-in per-matter, per-step config (`matter_tat_settings`, set once via `matters_create`'s `p_tat` param — see "FMS workflow" above). Existing matters created before this change had their due dates stripped for consistency (no per-matter TAT row for them either), and Admin > TAT & Holidays is now just Admin > Holidays.
 

@@ -1,8 +1,8 @@
-# Jlaw Associates - Ops
+# Master ERP - Ops
 
 Internal, cloud-hosted tool for the firm's matter workflow (FMS), court hours tracking, independent task management, and auto-scoring.
 
-- `backend/` - **archived**: the original Google Apps Script Web App (`backend.gs` + `appsscript.json`) this app used before migrating to Supabase. Kept for historical reference only; not deployed.
+- `google app/` - **archived**: the original Google Apps Script Web App (`backend.gs` + `appsscript.json`) this app used before migrating to Supabase. Kept for historical reference only; not deployed.
 - (repo root) - Next.js app (TypeScript, App Router), deployed to Vercel, talking directly to Supabase (`@supabase/supabase-js`).
 - `docs/DEPLOYMENT.md` - step-by-step deployment instructions (Supabase backend + Vercel frontend), plus the archived Apps Script instructions.
 

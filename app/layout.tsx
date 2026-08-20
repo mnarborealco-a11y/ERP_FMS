@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Jlaw Associates - Ops',
+  title: 'Master ERP - Ops',
   description: 'Internal matter, task, court-time and scoring tracker'
 };
 

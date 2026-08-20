@@ -14,7 +14,7 @@ The Supabase project (`cziglwqqellxnpzavxks`, region ap-southeast-1) already has
 
 ## Frontend (Next.js on Vercel)
 
-1. `npm install` (from the repo root — the Next.js app lives there, alongside the non-Next.js `backend/` and `docs/` sibling directories).
+1. `npm install` (from the repo root — the Next.js app lives there, alongside the non-Next.js `google app/` and `docs/` sibling directories).
 2. Copy `.env.local.example` to `.env.local` and set:
    - `NEXT_PUBLIC_SUPABASE_URL` — from `mcp__supabase__get_project_url`, or Project Settings > API in the Supabase dashboard.
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — the `anon`/publishable key from `mcp__supabase__get_publishable_keys`, or Project Settings > API.
@@ -34,14 +34,14 @@ The Supabase project (`cziglwqqellxnpzavxks`, region ap-southeast-1) already has
 
 ## Archived: Google Apps Script + Sheets backend (decommissioned)
 
-The app originally ran on Google Apps Script + Google Sheets before migrating to Supabase (see root `CLAUDE.md` for why and what changed). `backend/backend.gs` and `backend/appsscript.json` are kept in the repo for historical reference only — **do not deploy or extend this**; it is not connected to anything live.
+The app originally ran on Google Apps Script + Google Sheets before migrating to Supabase (see root `CLAUDE.md` for why and what changed). `google app/backend.gs` and `google app/appsscript.json` are kept in the repo for historical reference only — **do not deploy or extend this**; it is not connected to anything live.
 
 <details>
 <summary>Original Apps Script deployment steps (historical)</summary>
 
-1. **Create the database spreadsheet.** In Google Drive, create a new Google Sheet — this was the entire database. Name it e.g. "Jlaw Associates - Ops DB".
+1. **Create the database spreadsheet.** In Google Drive, create a new Google Sheet — this was the entire database. Name it e.g. "Master ERP - Ops DB".
 2. **Open the bound Apps Script project.** Extensions > Apps Script.
-3. **Copy in the code.** The entire backend was one file, `backend/backend.gs`. In the Apps Script editor, delete the default `Code.gs` content and paste in `backend/backend.gs`. Also replace the `appsscript.json` manifest with `backend/appsscript.json`.
+3. **Copy in the code.** The entire backend was one file, `google app/backend.gs`. In the Apps Script editor, delete the default `Code.gs` content and paste in `google app/backend.gs`. Also replace the `appsscript.json` manifest with `google app/appsscript.json`.
 4. **Set the script's time zone** (`Asia/Kolkata` default in `appsscript.json`).
 5. **Run `setup()`** after editing the `SETUP_ADMIN_*` constants — created all sheet tabs, the JWT secret, default TAT config, the first Founder/Admin login, and the daily overdue-scan trigger.
 6. **(Optional) `seedDummyData()`** for demo data.

@@ -36,7 +36,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <Card className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <h1 className="text-lg font-semibold text-ink">Jlaw Associates</h1>
+          <h1 className="text-lg font-semibold text-ink">Master ERP</h1>
           <p className="text-sm text-slate-500">Sign in to your account</p>
         </div>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
