@@ -4,6 +4,7 @@ import { use } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { useEmployees, employeeName } from '@/lib/useEmployees';
+import { useClients, clientName } from '@/lib/useClients';
 import { Badge, Card, EmptyState, LoadingState, PageHeader, formatDateTime } from '@/components/ui';
 import type { ScoreLedgerEntry } from '@/types/api';
 
@@ -17,6 +18,8 @@ const eventTone: Record<string, 'purple' | 'red' | 'slate'> = {
 export default function EmployeeLedgerPage({ params }: { params: Promise<{ employeeId: string }> }) {
   const { employeeId } = use(params);
   const { data: employees } = useEmployees();
+  const { data: clients } = useClients();
+  const displayName = employees?.some((e) => e.userId === employeeId) ? employeeName(employees, employeeId) : clientName(clients, employeeId);
 
   const { data, isLoading } = useQuery({
     queryKey: ['scoring', 'ledger', employeeId],
@@ -37,7 +40,7 @@ export default function EmployeeLedgerPage({ params }: { params: Promise<{ emplo
   return (
     <div>
       <PageHeader
-        title={`${employeeName(employees, employeeId)} — Score Ledger`}
+        title={`${displayName} — Score Ledger`}
         subtitle={`Total: ${total} penalty point(s) — lower is better`}
       />
 

@@ -10,11 +10,12 @@
 //      its first admin). Company-scoped seat limits don't apply to this path
 //      -- onboarding a company's first admin isn't counted against a seat
 //      limit that was just set moments earlier.
-//   3. Caller is an active FOUNDER_ADMIN -- may create EMPLOYEE/FOUNDER_ADMIN
-//      accounts, always stamped with the CALLER'S OWN companyId. A
+//   3. Caller is an active FOUNDER_ADMIN -- may create EMPLOYEE/FOUNDER_ADMIN/
+//      CLIENT accounts, always stamped with the CALLER'S OWN companyId. A
 //      client-supplied companyId is never trusted in this branch -- that's
 //      exactly the spot a naive multi-tenant port would open a cross-tenant
-//      hole.
+//      hole. CLIENT accounts never count against the company's max_users
+//      seat limit (seats are for staff, not portal access for clients).
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -78,8 +79,8 @@ Deno.serve(async (req: Request) => {
     role = "SUPER_ADMIN";
     companyId = null;
   } else {
-    if (role !== "FOUNDER_ADMIN" && role !== "EMPLOYEE") {
-      return errorResponse(400, "VALIDATION_ERROR", "role must be FOUNDER_ADMIN or EMPLOYEE");
+    if (role !== "FOUNDER_ADMIN" && role !== "EMPLOYEE" && role !== "CLIENT") {
+      return errorResponse(400, "VALIDATION_ERROR", "role must be FOUNDER_ADMIN, EMPLOYEE, or CLIENT");
     }
 
     const authHeader = req.headers.get("Authorization") || "";
@@ -122,12 +123,16 @@ Deno.serve(async (req: Request) => {
       if (!company || company.status !== "ACTIVE") {
         return errorResponse(409, "CONFLICT", "Company is suspended");
       }
+      // Seats count staff (Founder/Admin + Employee) only -- a CLIENT account
+      // is portal access for someone outside the firm, not a team seat, so it
+      // never counts against max_users.
       const { count: activeCount } = await admin
         .from("profiles")
         .select("id", { count: "exact", head: true })
         .eq("company_id", companyId)
-        .eq("status", "ACTIVE");
-      if ((activeCount ?? 0) >= company.max_users) {
+        .eq("status", "ACTIVE")
+        .neq("role", "CLIENT");
+      if (role !== "CLIENT" && (activeCount ?? 0) >= company.max_users) {
         return errorResponse(
           409,
           "CONFLICT",

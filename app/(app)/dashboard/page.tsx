@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth';
 import { callApi } from '@/lib/apiClient';
 import { supabase } from '@/lib/supabaseClient';
 import { Badge, Card, EmptyState, LoadingState, PageHeader, formatDate, formatDateTime } from '@/components/ui';
-import type { AdminDashboard, EmployeeDashboard } from '@/types/api';
+import type { AdminDashboard, EmployeeDashboard, WorkflowInstance } from '@/types/api';
 
 function useMatterTitles() {
   const { data } = useQuery({
@@ -32,7 +32,43 @@ export default function DashboardPage() {
   }, [user, router]);
 
   if (!user || user.role === 'SUPER_ADMIN') return null;
-  return user.role === 'FOUNDER_ADMIN' ? <AdminDashboardView /> : <EmployeeDashboardView />;
+  if (user.role === 'FOUNDER_ADMIN') return <AdminDashboardView />;
+  if (user.role === 'CLIENT') return <ClientDashboardView />;
+  return <EmployeeDashboardView />;
+}
+
+function ClientDashboardView() {
+  const { user } = useAuth();
+  const { data, isLoading } = useQuery({
+    queryKey: ['workflow-instances', 'my-client-instances', user?.userId],
+    queryFn: async (): Promise<WorkflowInstance[]> => {
+      const { data, error } = await supabase.from('workflow_instances').select('*').eq('client_id', user!.userId).order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user
+  });
+
+  if (isLoading || !data) return <LoadingState />;
+
+  return (
+    <div>
+      <PageHeader title="My Matters" subtitle="Items where your decision or input is needed." />
+      {data.length === 0 ? (
+        <EmptyState message="Nothing here yet." />
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {data.map((i) => (
+            <li key={i.id}>
+              <Link href={`/workflows/instance/${i.id}`} className="block rounded-md border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
+                <span className="font-medium">{i.title}</span> — <Badge tone={i.status === 'COMPLETED' ? 'green' : 'blue'}>{i.status.replaceAll('_', ' ')}</Badge>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 function AdminDashboardView() {

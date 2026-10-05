@@ -6,13 +6,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { callApi } from '@/lib/apiClient';
 import { isApiError } from '@/lib/auth';
 import { Button, Card, EmptyState, ErrorBanner, LoadingState, PageHeader } from '@/components/ui';
-import type { ScoreSummaryRow } from '@/types/api';
+import type { Role, ScoreSummaryRow } from '@/types/api';
 
 export default function ScoreboardPage() {
   const queryClient = useQueryClient();
+  const [role, setRole] = useState<Role>('EMPLOYEE');
   const { data, isLoading } = useQuery({
-    queryKey: ['scoring', 'summary'],
-    queryFn: () => callApi<ScoreSummaryRow[]>('scoring_get_summary')
+    queryKey: ['scoring', 'summary', role],
+    queryFn: () => callApi<ScoreSummaryRow[]>('scoring_get_summary', { p_role: role })
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +41,15 @@ export default function ScoreboardPage() {
         }
       />
 
+      <div className="mb-4 flex gap-2">
+        <Button variant={role === 'EMPLOYEE' ? 'primary' : 'secondary'} onClick={() => setRole('EMPLOYEE')}>
+          Employees
+        </Button>
+        <Button variant={role === 'CLIENT' ? 'primary' : 'secondary'} onClick={() => setRole('CLIENT')}>
+          Clients
+        </Button>
+      </div>
+
       {error && (
         <div className="mb-4">
           <ErrorBanner message={error} />
@@ -50,16 +60,16 @@ export default function ScoreboardPage() {
       {isLoading || !data ? (
         <LoadingState />
       ) : data.length === 0 ? (
-        <EmptyState message="No users yet." />
+        <EmptyState message={role === 'CLIENT' ? 'No clients yet.' : 'No users yet.'} />
       ) : (
         <Card className="overflow-x-auto p-0">
           <table className="w-full min-w-[600px] text-left text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="px-4 py-2">User</th>
-                <th className="px-4 py-2">Resubmissions</th>
+                <th className="px-4 py-2">{role === 'CLIENT' ? 'Client' : 'User'}</th>
+                {role === 'EMPLOYEE' && <th className="px-4 py-2">Resubmissions</th>}
                 <th className="px-4 py-2">Overdue Steps</th>
-                <th className="px-4 py-2">Overdue Tasks</th>
+                {role === 'EMPLOYEE' && <th className="px-4 py-2">Overdue Tasks</th>}
                 <th className="px-4 py-2">Total Penalty Points</th>
                 <th className="px-4 py-2">Avg Penalty / 2 Weeks</th>
               </tr>
@@ -72,9 +82,9 @@ export default function ScoreboardPage() {
                       {row.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-2">{row.byType.FOUNDER_RESUBMISSION ?? 0}</td>
+                  {role === 'EMPLOYEE' && <td className="px-4 py-2">{row.byType.FOUNDER_RESUBMISSION ?? 0}</td>}
                   <td className="px-4 py-2">{row.byType.OVERDUE_STEP ?? 0}</td>
-                  <td className="px-4 py-2">{row.byType.OVERDUE_TASK ?? 0}</td>
+                  {role === 'EMPLOYEE' && <td className="px-4 py-2">{row.byType.OVERDUE_TASK ?? 0}</td>}
                   <td className={`px-4 py-2 font-semibold ${row.totalPoints > 0 ? 'text-red-600' : 'text-green-600'}`}>{row.totalPoints}</td>
                   <td className={`px-4 py-2 font-semibold ${row.avgPointsPerTwoWeeks > 0 ? 'text-red-600' : 'text-green-600'}`}>
                     {row.avgPointsPerTwoWeeks}

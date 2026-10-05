@@ -15,6 +15,9 @@ export interface CompanyBranding {
   colorSecondary: string;
   textOnPrimary: '#000000' | '#ffffff';
   textOnSecondary: '#000000' | '#ffffff';
+  tasksEnabled: boolean;
+  mattersEnabled: boolean;
+  courtAppearancesEnabled: boolean;
 }
 
 const defaultBranding: CompanyBranding = {
@@ -24,7 +27,10 @@ const defaultBranding: CompanyBranding = {
   colorPrimary: DEFAULT_COLOR_PRIMARY,
   colorSecondary: DEFAULT_COLOR_SECONDARY,
   textOnPrimary: contrastTextColor(DEFAULT_COLOR_PRIMARY),
-  textOnSecondary: contrastTextColor(DEFAULT_COLOR_SECONDARY)
+  textOnSecondary: contrastTextColor(DEFAULT_COLOR_SECONDARY),
+  tasksEnabled: true,
+  mattersEnabled: true,
+  courtAppearancesEnabled: true
 };
 
 // SUPER_ADMIN has no companyId, so this naturally falls back to the default
@@ -38,7 +44,7 @@ export function useCompanyBranding() {
     queryFn: async (): Promise<CompanyBranding> => {
       const { data, error } = await supabase
         .from('companies')
-        .select('id, name, logo_url, color_primary, color_secondary')
+        .select('id, name, logo_url, color_primary, color_secondary, tasks_enabled, matters_enabled, court_appearances_enabled')
         .eq('id', user!.companyId!)
         .single();
       if (error) throw error;
@@ -51,7 +57,10 @@ export function useCompanyBranding() {
         colorPrimary,
         colorSecondary,
         textOnPrimary: contrastTextColor(colorPrimary),
-        textOnSecondary: contrastTextColor(colorSecondary)
+        textOnSecondary: contrastTextColor(colorSecondary),
+        tasksEnabled: data.tasks_enabled,
+        mattersEnabled: data.matters_enabled,
+        courtAppearancesEnabled: data.court_appearances_enabled
       };
     },
     staleTime: 60_000,

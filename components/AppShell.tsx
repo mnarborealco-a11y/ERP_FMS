@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useCompanyBranding } from '@/lib/useCompanyBranding';
+import { useCompanyWorkflows } from '@/lib/useCompanyWorkflows';
 
 interface NavItem {
   href: string;
@@ -17,6 +18,15 @@ const employeeNav: NavItem[] = [
   { href: '/matters', label: 'My Matters' },
   { href: '/tasks', label: 'My Tasks' },
   { href: '/court', label: 'Court Appearances' },
+  { href: '/my-score', label: 'My Score' }
+];
+
+// Clients only ever see instances where they're the client (RLS-scoped),
+// via the same generic workflow pages employees use -- no bespoke client
+// pages. Legacy Matters/Court Appearances links never apply here since
+// those predate any real client-login concept.
+const clientNav: NavItem[] = [
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/my-score', label: 'My Score' }
 ];
 
@@ -39,7 +49,19 @@ const adminPanelNav: NavItem[] = [
 // Platform-level screens for the SUPER_ADMIN role -- separate from the
 // per-company admin nav above, since a super admin has no companyId and
 // never sees a company's operational data.
-const superAdminNav: NavItem[] = [{ href: '/super-admin/companies', label: 'Companies' }];
+const superAdminNav: NavItem[] = [
+  { href: '/super-admin/companies', label: 'Companies' },
+  { href: '/super-admin/workflows', label: 'Workflows' }
+];
+
+// Once a company is assigned the generic-engine equivalent of a legacy
+// feature, the old hardcoded link is just a confusing duplicate -- hide it.
+// A company with no assignment yet (e.g. Jlaw, still pre-cutover) keeps
+// seeing the legacy link, unaffected.
+const LEGACY_HREFS_BY_WORKFLOW_KEY: Record<string, string[]> = {
+  MATTERS: ['/matters'],
+  COURT_APPEARANCE: ['/admin/court-appearances', '/court']
+};
 
 function SidebarHeader({ size = 36 }: { size?: number }) {
   const { data: branding } = useCompanyBranding();
@@ -75,19 +97,36 @@ function NavLink({ item, active, onClick, accentColor, accentText }: { item: Nav
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const { user } = useAuth();
   const { data: branding } = useCompanyBranding();
+  const { data: companyWorkflows } = useCompanyWorkflows();
   const pathname = usePathname();
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
   const isAdmin = user?.role === 'FOUNDER_ADMIN';
+  const isClient = user?.role === 'CLIENT';
   const adminPanelActive = adminPanelNav.some((item) => pathname === item.href);
   const [adminOpen, setAdminOpen] = useState(true);
   const accentColor = branding?.colorPrimary ?? '#547afd';
   const accentText = branding?.textOnPrimary ?? '#ffffff';
 
-  const navItems = isSuperAdmin ? superAdminNav : isAdmin ? adminTopNav : employeeNav;
+  const baseNavItems = isSuperAdmin ? superAdminNav : isAdmin ? adminTopNav : isClient ? clientNav : employeeNav;
+  const hiddenLegacyHrefs = new Set((companyWorkflows ?? []).flatMap((w) => LEGACY_HREFS_BY_WORKFLOW_KEY[w.key] ?? []));
+  if (!isSuperAdmin && branding && !branding.tasksEnabled) hiddenLegacyHrefs.add('/tasks');
+  if (!isSuperAdmin && branding && !branding.mattersEnabled) hiddenLegacyHrefs.add('/matters');
+  if (!isSuperAdmin && branding && !branding.courtAppearancesEnabled) {
+    hiddenLegacyHrefs.add('/court');
+    hiddenLegacyHrefs.add('/admin/court-appearances');
+  }
+  const navItems = baseNavItems.filter((item) => !hiddenLegacyHrefs.has(item.href));
+  // Any workflow the company is assigned to shows up here automatically.
+  const workflowNavItems: NavItem[] = isSuperAdmin
+    ? []
+    : (companyWorkflows ?? []).map((w) => ({ href: `/workflows/${w.key}`, label: w.name }));
 
   return (
     <nav className="flex flex-col gap-0.5 p-3">
       {navItems.map((item) => (
+        <NavLink key={item.href} item={item} active={pathname === item.href} onClick={onNavigate} accentColor={accentColor} accentText={accentText} />
+      ))}
+      {workflowNavItems.map((item) => (
         <NavLink key={item.href} item={item} active={pathname === item.href} onClick={onNavigate} accentColor={accentColor} accentText={accentText} />
       ))}
 
@@ -120,6 +159,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 function roleLabel(role: string | undefined): string {
   if (role === 'SUPER_ADMIN') return 'Super Admin';
   if (role === 'FOUNDER_ADMIN') return 'Admin';
+  if (role === 'CLIENT') return 'Client';
   return 'User';
 }
 

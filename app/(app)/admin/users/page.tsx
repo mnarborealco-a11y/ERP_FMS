@@ -8,6 +8,12 @@ import { isApiError } from '@/lib/auth';
 import { Badge, Button, Card, ErrorBanner, Field, Input, PageHeader, Select } from '@/components/ui';
 import type { PublicUser, Role } from '@/types/api';
 
+function roleLabel(role: Role): string {
+  if (role === 'FOUNDER_ADMIN') return 'Founder / Admin';
+  if (role === 'CLIENT') return 'Client';
+  return 'User';
+}
+
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
@@ -71,6 +77,7 @@ export default function UsersPage() {
             <Select value={role} onChange={(e) => setRole(e.target.value as Role)}>
               <option value="EMPLOYEE">User</option>
               <option value="FOUNDER_ADMIN">Founder / Admin</option>
+              <option value="CLIENT">Client</option>
             </Select>
           </Field>
           <Field label="Initial password (min 8 characters)">
@@ -102,7 +109,7 @@ export default function UsersPage() {
                 <tr key={u.userId} className="border-b border-slate-100 last:border-0">
                   <td className="px-4 py-2 font-medium">{u.name}</td>
                   <td className="px-4 py-2">{u.email}</td>
-                  <td className="px-4 py-2">{u.role === 'FOUNDER_ADMIN' ? 'Founder / Admin' : 'User'}</td>
+                  <td className="px-4 py-2">{roleLabel(u.role)}</td>
                   <td className="px-4 py-2">
                     <Badge tone={u.status === 'ACTIVE' ? 'green' : 'red'}>{u.status}</Badge>
                   </td>

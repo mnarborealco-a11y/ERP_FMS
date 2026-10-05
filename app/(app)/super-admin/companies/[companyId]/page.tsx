@@ -6,8 +6,8 @@ import { callApi } from '@/lib/apiClient';
 import { supabase } from '@/lib/supabaseClient';
 import { isApiError } from '@/lib/auth';
 import { contrastTextColor } from '@/lib/contrastColor';
-import { Badge, Button, Card, ErrorBanner, Field, Input, LoadingState, PageHeader } from '@/components/ui';
-import type { Company } from '@/types/api';
+import { Badge, Button, Card, ErrorBanner, Field, Input, LoadingState, PageHeader, Select } from '@/components/ui';
+import type { Company, TatMode, WorkflowListRow } from '@/types/api';
 
 interface CompanyListRow {
   id: string;
@@ -21,6 +21,9 @@ interface CompanyListRow {
   logoUrl: string | null;
   colorPrimary: string | null;
   colorSecondary: string | null;
+  tasksEnabled: boolean;
+  mattersEnabled: boolean;
+  courtAppearancesEnabled: boolean;
   createdAt: string;
 }
 
@@ -41,6 +44,9 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ compan
   const [logoUrl, setLogoUrl] = useState('');
   const [colorPrimary, setColorPrimary] = useState('#547afd');
   const [colorSecondary, setColorSecondary] = useState('#3d5fe0');
+  const [tasksEnabled, setTasksEnabled] = useState(true);
+  const [mattersEnabled, setMattersEnabled] = useState(true);
+  const [courtAppearancesEnabled, setCourtAppearancesEnabled] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,6 +58,9 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ compan
     setLogoUrl(company.logoUrl ?? '');
     setColorPrimary(company.colorPrimary ?? '#547afd');
     setColorSecondary(company.colorSecondary ?? '#3d5fe0');
+    setTasksEnabled(company.tasksEnabled);
+    setMattersEnabled(company.mattersEnabled);
+    setCourtAppearancesEnabled(company.courtAppearancesEnabled);
   }, [company]);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['super-admin', 'companies'] });
@@ -66,7 +75,10 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ compan
         p_max_users: Number(maxUsers),
         p_logo_url: logoUrl.trim() || null,
         p_color_primary: colorPrimary || null,
-        p_color_secondary: colorSecondary || null
+        p_color_secondary: colorSecondary || null,
+        p_tasks_enabled: tasksEnabled,
+        p_matters_enabled: mattersEnabled,
+        p_court_appearances_enabled: courtAppearancesEnabled
       }),
     onSuccess: () => {
       setFormError(null);
@@ -153,6 +165,20 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ compan
                 <input type="checkbox" checked={worksSunday} onChange={(e) => setWorksSunday(e.target.checked)} /> Works Sundays
               </label>
             </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={mattersEnabled} onChange={(e) => setMattersEnabled(e.target.checked)} /> Legacy Matters enabled
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={courtAppearancesEnabled}
+                onChange={(e) => setCourtAppearancesEnabled(e.target.checked)}
+              />{' '}
+              Legacy Court Appearances enabled
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={tasksEnabled} onChange={(e) => setTasksEnabled(e.target.checked)} /> Independent Tasks enabled
+            </label>
             <Field label="Logo URL">
               <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://…" />
             </Field>
@@ -213,7 +239,109 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ compan
             </Button>
           </form>
         </Card>
+
+        <WorkflowsCard companyId={companyId} />
       </div>
     </div>
+  );
+}
+
+interface CompanyWorkflowAssignmentRow {
+  id: string;
+  company_id: string;
+  workflow_id: string;
+  tat_mode: TatMode;
+  is_active: boolean;
+}
+
+function WorkflowsCard({ companyId }: { companyId: string }) {
+  const queryClient = useQueryClient();
+
+  const { data: allWorkflows } = useQuery({
+    queryKey: ['super-admin', 'workflows'],
+    queryFn: () => callApi<WorkflowListRow[]>('super_admin_list_workflows')
+  });
+
+  const { data: assignments } = useQuery({
+    queryKey: ['super-admin', 'company-workflow-assignments', companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('company_workflow_assignments').select('*').eq('company_id', companyId);
+      if (error) throw error;
+      return data as CompanyWorkflowAssignmentRow[];
+    }
+  });
+
+  const [error, setError] = useState<string | null>(null);
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['super-admin', 'company-workflow-assignments', companyId] });
+
+  const assign = useMutation({
+    mutationFn: (payload: { workflowId: string; tatMode: TatMode }) =>
+      callApi('company_workflow_assign', { p_company_id: companyId, p_workflow_id: payload.workflowId, p_tat_mode: payload.tatMode }),
+    onSuccess: () => {
+      setError(null);
+      invalidate();
+    },
+    onError: (err) => setError(isApiError(err) ? err.message : 'Something went wrong.')
+  });
+
+  const unassign = useMutation({
+    mutationFn: (workflowId: string) => callApi('company_workflow_unassign', { p_company_id: companyId, p_workflow_id: workflowId }),
+    onSuccess: () => {
+      setError(null);
+      invalidate();
+    },
+    onError: (err) => setError(isApiError(err) ? err.message : 'Something went wrong.')
+  });
+
+  return (
+    <Card>
+      <h2 className="mb-3 text-sm font-semibold text-slate-900">Workflows</h2>
+      {error && (
+        <div className="mb-3">
+          <ErrorBanner message={error} />
+        </div>
+      )}
+      {!allWorkflows ? (
+        <LoadingState />
+      ) : allWorkflows.length === 0 ? (
+        <p className="text-sm text-slate-500">No workflows have been authored yet.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {allWorkflows.map(({ workflow }) => {
+            const assignment = assignments?.find((a) => a.workflow_id === workflow.id && a.is_active);
+            return (
+              <li key={workflow.id} className="flex flex-wrap items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm">
+                <span className="font-medium">{workflow.name}</span>
+                {assignment ? (
+                  <>
+                    <Badge tone="green">Assigned</Badge>
+                    <Select
+                      className="w-auto"
+                      value={assignment.tat_mode}
+                      onChange={(e) => assign.mutate({ workflowId: workflow.id, tatMode: e.target.value as TatMode })}
+                    >
+                      <option value="DEFAULT">TAT: step defaults</option>
+                      <option value="PER_INSTANCE">TAT: set per instance</option>
+                    </Select>
+                    <Button variant="danger" className="ml-auto" disabled={unassign.isPending} onClick={() => unassign.mutate(workflow.id)}>
+                      Unassign
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    className="ml-auto"
+                    disabled={assign.isPending}
+                    onClick={() => assign.mutate({ workflowId: workflow.id, tatMode: 'DEFAULT' })}
+                  >
+                    Assign
+                  </Button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
   );
 }

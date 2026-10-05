@@ -120,4 +120,71 @@ export interface CourtAppearanceResponse {
   appearance: CourtAppearance;
 }
 
+// ---------------------------------------------------------------------------
+// Generic workflow engine (Phase 2) -- super-admin-authored process
+// definitions running on a shared engine. Matters/Court Appearance are two
+// instances of this engine, not bespoke features.
+// ---------------------------------------------------------------------------
+export type WorkflowDefinitionStatus = Enums<'workflow_definition_status_t'>;
+export type StepKind = Enums<'step_kind_t'>;
+export type StepActorRole = Enums<'step_actor_role_t'>;
+export type WorkflowFieldType = Enums<'workflow_field_type_t'>;
+export type TatMode = Enums<'tat_mode_t'>;
+
+export type WorkflowDefinition = Tables<'workflow_definitions'>;
+export type WorkflowStep = Tables<'workflow_steps'>;
+export type WorkflowFieldDefinition = Tables<'workflow_field_definitions'>;
+export type CompanyWorkflowAssignment = Tables<'company_workflow_assignments'>;
+export type WorkflowInstance = Tables<'workflow_instances'>;
+export type WorkflowInstanceStep = Tables<'workflow_instance_steps'>;
+export type WorkflowInstanceDecision = Tables<'workflow_instance_decisions'>;
+export type WorkflowInstanceFieldValue = Tables<'workflow_instance_field_values'>;
+export type WorkflowInstanceTatOverride = Tables<'workflow_instance_tat_overrides'>;
+export type WorkflowInstanceTransferRequest = Tables<'workflow_instance_transfer_requests'>;
+
+export interface FieldOption {
+  value: string;
+  label: string;
+}
+
+export interface WorkflowInstanceMutationResponse {
+  instance: WorkflowInstance;
+}
+export interface WorkflowInstanceGetResponse {
+  instance: WorkflowInstance | null;
+  steps: WorkflowInstanceStep[];
+  decisions: WorkflowInstanceDecision[];
+  fieldValues: WorkflowInstanceFieldValue[];
+  transferRequests: WorkflowInstanceTransferRequest[];
+}
+export interface WorkflowTransferMutationResponse {
+  transferRequest: WorkflowInstanceTransferRequest;
+  instance?: WorkflowInstance;
+}
+
+// Super-admin authoring RPC responses
+export interface WorkflowDefinitionMutationResponse {
+  workflow: WorkflowDefinition;
+}
+export interface WorkflowStepMutationResponse {
+  step: WorkflowStep;
+}
+export interface WorkflowFieldMutationResponse {
+  field: WorkflowFieldDefinition;
+}
+export interface CompanyWorkflowAssignmentResponse {
+  assignment: CompanyWorkflowAssignment;
+}
+export interface WorkflowListRow {
+  workflow: WorkflowDefinition;
+  stepCount: number;
+  companyCount: number;
+}
+export interface WorkflowDefinitionGetResponse {
+  workflow: WorkflowDefinition | null;
+  steps: WorkflowStep[];
+  fields: WorkflowFieldDefinition[];
+  assignments: CompanyWorkflowAssignment[];
+}
+
 export type { Database };
