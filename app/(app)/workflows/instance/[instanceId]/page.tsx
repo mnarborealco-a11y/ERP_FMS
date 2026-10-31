@@ -153,6 +153,11 @@ export default function WorkflowInstanceDetailPage({ params }: { params: Promise
                 {instance.status.replaceAll('_', ' ')}
               </Badge>
               {currentStepDef && <Badge tone="purple">{currentStepDef.name}</Badge>}
+              {instance.fixed_due_at && (
+                <Badge tone={instance.status === 'IN_PROGRESS' && isOverdue(instance.fixed_due_at) ? 'red' : 'slate'}>
+                  Compliance deadline: {formatDateTime(instance.fixed_due_at)}
+                </Badge>
+              )}
             </div>
 
             {workflowFieldValues.length > 0 && (

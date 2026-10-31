@@ -1708,7 +1708,9 @@ export type Database = {
           created_at: string
           created_by: string | null
           current_step_id: string | null
+          fixed_due_at: string | null
           id: string
+          recurring_schedule_id: string | null
           status: Database["public"]["Enums"]["matter_status_t"]
           title: string
           updated_at: string
@@ -1721,7 +1723,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           current_step_id?: string | null
+          fixed_due_at?: string | null
           id: string
+          recurring_schedule_id?: string | null
           status?: Database["public"]["Enums"]["matter_status_t"]
           title: string
           updated_at?: string
@@ -1734,7 +1738,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           current_step_id?: string | null
+          fixed_due_at?: string | null
           id?: string
+          recurring_schedule_id?: string | null
           status?: Database["public"]["Enums"]["matter_status_t"]
           title?: string
           updated_at?: string
@@ -1819,7 +1825,146 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "workflow_instances_recurring_schedule_id_fkey"
+            columns: ["recurring_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_recurring_schedules"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "workflow_instances_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_recurring_schedules: {
+        Row: {
+          anchor_date: string
+          assigned_to: string
+          client_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string
+          field_values: Json
+          id: string
+          is_active: boolean
+          next_due_date: string
+          recurrence_interval: number
+          recurrence_unit: Database["public"]["Enums"]["recurrence_unit_t"]
+          step_tat_overrides: Json
+          updated_at: string
+          workflow_id: string
+        }
+        Insert: {
+          anchor_date: string
+          assigned_to: string
+          client_id?: string | null
+          company_id: string
+          created_at?: string
+          created_by: string
+          field_values?: Json
+          id?: string
+          is_active?: boolean
+          next_due_date: string
+          recurrence_interval: number
+          recurrence_unit: Database["public"]["Enums"]["recurrence_unit_t"]
+          step_tat_overrides?: Json
+          updated_at?: string
+          workflow_id: string
+        }
+        Update: {
+          anchor_date?: string
+          assigned_to?: string
+          client_id?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          field_values?: Json
+          id?: string
+          is_active?: boolean
+          next_due_date?: string
+          recurrence_interval?: number
+          recurrence_unit?: Database["public"]["Enums"]["recurrence_unit_t"]
+          step_tat_overrides?: Json
+          updated_at?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_recurring_schedules_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "active_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_recurring_schedules_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "active_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_recurring_schedules_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_recurring_schedules_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "active_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_recurring_schedules_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "active_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_recurring_schedules_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_recurring_schedules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_recurring_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "active_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_recurring_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "active_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_recurring_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_recurring_schedules_workflow_id_fkey"
             columns: ["workflow_id"]
             isOneToOne: false
             referencedRelation: "workflow_definitions"
@@ -1943,6 +2088,14 @@ export type Database = {
       }
     }
     Functions: {
+      add_calendar_interval: {
+        Args: {
+          p_date: string
+          p_n: number
+          p_unit: Database["public"]["Enums"]["recurrence_unit_t"]
+        }
+        Returns: string
+      }
       add_working_days: {
         Args: { days: number; p_company_id: string; start_at: string }
         Returns: string
@@ -2024,6 +2177,31 @@ export type Database = {
       current_role_claim: { Args: never; Returns: string }
       dashboard_admin: { Args: never; Returns: Json }
       dashboard_employee: { Args: never; Returns: Json }
+      generate_due_recurring_instances: { Args: never; Returns: number }
+      generate_recurring_instance: {
+        Args: { p_schedule_id: string }
+        Returns: {
+          assigned_to: string
+          client_id: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          current_step_id: string | null
+          fixed_due_at: string | null
+          id: string
+          recurring_schedule_id: string | null
+          status: Database["public"]["Enums"]["matter_status_t"]
+          title: string
+          updated_at: string
+          workflow_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "workflow_instances"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       is_active_caller: { Args: never; Returns: boolean }
       is_admin_caller: { Args: never; Returns: boolean }
       is_non_working_day: {
@@ -2158,6 +2336,29 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      recurring_schedule_create: {
+        Args: {
+          p_anchor_date: string
+          p_assigned_to: string
+          p_client_id?: string
+          p_field_values?: Json
+          p_recurrence_interval: number
+          p_recurrence_unit: Database["public"]["Enums"]["recurrence_unit_t"]
+          p_step_tat_overrides?: Json
+          p_workflow_id: string
+        }
+        Returns: Json
+      }
+      recurring_schedule_update: {
+        Args: {
+          p_assigned_to?: string
+          p_clear_client?: boolean
+          p_client_id?: string
+          p_is_active?: boolean
+          p_schedule_id: string
+        }
+        Returns: Json
       }
       require_any_matter: {
         Args: { p_company_id: string; p_matter_id: string }
@@ -2494,6 +2695,7 @@ export type Database = {
         | "COMPLETED"
       matter_type_t: "LITIGATION" | "NON_LITIGATION"
       push_status_t: "PENDING" | "APPROVED" | "REJECTED" | "AUTO_APPROVED"
+      recurrence_unit_t: "DAYS" | "WEEKS" | "MONTHS"
       request_status_t: "PENDING" | "APPROVED" | "REJECTED"
       role_t: "FOUNDER_ADMIN" | "EMPLOYEE" | "SUPER_ADMIN" | "CLIENT"
       score_event_t:
@@ -2686,6 +2888,7 @@ export const Constants = {
       ],
       matter_type_t: ["LITIGATION", "NON_LITIGATION"],
       push_status_t: ["PENDING", "APPROVED", "REJECTED", "AUTO_APPROVED"],
+      recurrence_unit_t: ["DAYS", "WEEKS", "MONTHS"],
       request_status_t: ["PENDING", "APPROVED", "REJECTED"],
       role_t: ["FOUNDER_ADMIN", "EMPLOYEE", "SUPER_ADMIN", "CLIENT"],
       score_event_t: [

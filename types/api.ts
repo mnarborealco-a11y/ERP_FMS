@@ -141,6 +141,8 @@ export type WorkflowInstanceDecision = Tables<'workflow_instance_decisions'>;
 export type WorkflowInstanceFieldValue = Tables<'workflow_instance_field_values'>;
 export type WorkflowInstanceTatOverride = Tables<'workflow_instance_tat_overrides'>;
 export type WorkflowInstanceTransferRequest = Tables<'workflow_instance_transfer_requests'>;
+export type RecurrenceUnit = Enums<'recurrence_unit_t'>;
+export type WorkflowRecurringSchedule = Tables<'workflow_recurring_schedules'>;
 
 export interface FieldOption {
   value: string;
@@ -159,6 +161,10 @@ export interface WorkflowInstanceGetResponse {
 }
 export interface WorkflowTransferMutationResponse {
   transferRequest: WorkflowInstanceTransferRequest;
+  instance?: WorkflowInstance;
+}
+export interface RecurringScheduleMutationResponse {
+  schedule: WorkflowRecurringSchedule;
   instance?: WorkflowInstance;
 }
 
