@@ -1,4 +1,4 @@
-# Master ERP — Ops App
+# Praxis — Ops App
 
 Internal, cloud-hosted tool for a law firm's own use (not a multi-tenant product, despite "SaaS" in the original ask — that just meant "hosted web app"). Covers four requirements: matter workflow (FMS) for Litigation and Non-Litigation matters, court appearance logging, independent task assignment, and auto-computed employee scoring.
 

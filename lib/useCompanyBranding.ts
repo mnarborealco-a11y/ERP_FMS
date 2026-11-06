@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 import { useAuth } from './auth';
 import { contrastTextColor } from './contrastColor';
 
-const DEFAULT_NAME = 'Master ERP';
+const DEFAULT_NAME = 'Praxis';
 const DEFAULT_COLOR_PRIMARY = '#547afd';
 const DEFAULT_COLOR_SECONDARY = '#3d5fe0';
 
@@ -23,7 +23,7 @@ export interface CompanyBranding {
 const defaultBranding: CompanyBranding = {
   companyId: null,
   name: DEFAULT_NAME,
-  logoUrl: '/master-erp-logo.png',
+  logoUrl: '/praxis-logo.png',
   colorPrimary: DEFAULT_COLOR_PRIMARY,
   colorSecondary: DEFAULT_COLOR_SECONDARY,
   textOnPrimary: contrastTextColor(DEFAULT_COLOR_PRIMARY),
@@ -34,7 +34,7 @@ const defaultBranding: CompanyBranding = {
 };
 
 // SUPER_ADMIN has no companyId, so this naturally falls back to the default
-// Master ERP look for that role -- no special-casing needed.
+// Praxis look for that role -- no special-casing needed.
 export function useCompanyBranding() {
   const { user } = useAuth();
 

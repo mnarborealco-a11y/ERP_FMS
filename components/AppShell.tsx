@@ -65,16 +65,35 @@ const LEGACY_HREFS_BY_WORKFLOW_KEY: Record<string, string[]> = {
 
 function SidebarHeader({ size = 36 }: { size?: number }) {
   const { data: branding } = useCompanyBranding();
-  const name = branding?.name ?? 'Master ERP';
-  const logoUrl = branding?.logoUrl ?? '/master-erp-logo.png';
+  const name = branding?.name ?? 'Praxis';
+  const logoUrl = branding?.logoUrl ?? '/praxis-logo.png';
+  // Logos aren't guaranteed to be square (e.g. a wide horizontal banner
+  // logo) -- size by height only, with a generous max-width, rather than
+  // forcing a square box that would crush a banner logo down to a sliver.
+  const isDefaultLogo = logoUrl === '/praxis-logo.png';
+  const maxWidth = size * 5;
 
   return (
     <div className="flex items-center gap-2.5 border-b border-white/10 px-4 py-4">
-      <Image src={logoUrl} alt="" width={size} height={size} className="rounded-md object-contain" priority unoptimized={logoUrl !== '/master-erp-logo.png'} />
-      <div>
-        <div className="text-sm font-semibold text-white">{name}</div>
-        <div className="text-xs text-slate-400">Ops</div>
-      </div>
+      <Image
+        src={logoUrl}
+        alt={name}
+        width={maxWidth}
+        height={size}
+        className="rounded-md object-contain object-left"
+        style={{ width: 'auto', height: size, maxWidth }}
+        priority
+        unoptimized={!isDefaultLogo}
+      />
+      {/* A custom company logo is expected to already show the company's
+          name/branding on its own -- the name/tagline text is only needed
+          as a label next to the generic default icon. */}
+      {isDefaultLogo && (
+        <div>
+          <div className="text-sm font-semibold text-white">{name}</div>
+          <div className="text-xs text-slate-400">Ops</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -85,8 +104,8 @@ function NavLink({ item, active, onClick, accentColor, accentText }: { item: Nav
       href={item.href}
       onClick={onClick}
       style={active ? { backgroundColor: accentColor, color: accentText } : undefined}
-      className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-        active ? '' : 'text-slate-300 hover:bg-white/10 hover:text-white'
+      className={`rounded-md px-3 py-2 text-sm font-medium transition-all ${
+        active ? '' : 'text-slate-300 hover:translate-x-0.5 hover:bg-white/10 hover:text-white'
       }`}
     >
       {item.label}
@@ -185,8 +204,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile drawer */}
       {mobileNavOpen && (
         <div className="fixed inset-0 z-50 sm:hidden" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setMobileNavOpen(false)} />
-          <div className="absolute inset-y-0 left-0 flex w-64 flex-col bg-ink shadow-xl">
+          <div className="absolute inset-0 bg-slate-900/50 animate-fade-in" onClick={() => setMobileNavOpen(false)} />
+          <div className="absolute inset-y-0 left-0 flex w-64 flex-col bg-ink shadow-xl animate-slide-in-left">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <SidebarHeader size={32} />
@@ -218,7 +237,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <path d="M3 5h14M3 10h14M3 15h14" strokeLinecap="round" />
               </svg>
             </button>
-            <span className="text-sm font-semibold text-ink">{branding?.name ?? 'Master ERP'}</span>
+            <span className="text-sm font-semibold text-ink">{branding?.name ?? 'Praxis'}</span>
           </div>
           <div className="hidden text-sm text-slate-500 sm:block" />
           <div className="flex items-center gap-3">

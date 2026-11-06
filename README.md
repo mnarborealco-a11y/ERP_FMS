@@ -1,4 +1,4 @@
-# Master ERP - Ops
+# Praxis - Ops
 
 Internal, cloud-hosted tool for the firm's matter workflow (FMS), court hours tracking, independent task management, and auto-scoring.
 
